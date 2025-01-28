@@ -1,6 +1,6 @@
 import React from 'react'
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
+import { SignInButton } from '@clerk/nextjs'; 
 
 function Header() {
   return (
@@ -9,8 +9,10 @@ function Header() {
         alt='logo'
         width={80}
         height={30}
-        /> <h1>Expensa...</h1>
-        <Button>Get Started</Button>
+        /> EXPENSA...
+      <div className="flex justify-center items-center"> 
+        <SignInButton className="bg-primary hover:bg-black text-white  active:bg-black py-2 px-4 rounded w-30" />
+      </div>
     </div>
   )
 }
