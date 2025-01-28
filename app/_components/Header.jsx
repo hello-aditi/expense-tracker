@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 
 function Header() {
   return (
-    <div className='bg-gray-900 p-2 flex justify-between items-center'>
+    <div className='p-2 flex justify-between items-center border shadow-sm'>
         <Image src={'./logo.svg'} 
         alt='logo'
-        width={100}
-        height={50}
-        />
+        width={80}
+        height={30}
+        /> <h1>Expensa...</h1>
         <Button>Get Started</Button>
     </div>
   )
