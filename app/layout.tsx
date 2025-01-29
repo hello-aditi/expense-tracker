@@ -4,20 +4,11 @@ import './globals.css';
 import { ClerkProvider, SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import './globals.css';
 import { Home } from './Home';
-import Dashboard from './dashboard/page';
+import DashboardPage from './(routes)/dashboard/dashboardPage';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider
-    appearance={{
-      layout: {
-        socialButtonsPlacement: 'bottom',
-        socialButtonsVariant: 'iconButton',
-        termsPageUrl: 'https://clerk.com/terms',
-        animations:true
-      }
-    }}
-    >
+    <ClerkProvider>
       <html lang="en">
         <body>
           <header>
@@ -26,9 +17,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Home />
             </SignedOut>
             <SignedIn>
-              {/* Render the children component (which should be the Dashboard component) */}
-              <UserButton />
-              <Dashboard />
+              {/* <UserButton /> */}
+              <DashboardPage />
             </SignedIn>
           </header>
           {/* <main>{children}</main> */}
