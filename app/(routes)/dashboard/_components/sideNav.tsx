@@ -1,6 +1,8 @@
+// @next/react use client
 import { UserButton } from '@clerk/nextjs'
 import { LayoutGrid, PiggyBank, ReceiptText, ShieldCheck } from 'lucide-react'
 import Image from 'next/image'
+// import { usePathname } from 'next/navigation'
 import React from 'react'
 
 function SideNav() {
@@ -9,30 +11,37 @@ function SideNav() {
     {
       id:1,
       name: 'Dashboard',
-      icon : LayoutGrid
+      icon : LayoutGrid,
+      path : '/dashboard'
     },
     {
       id:2,
       name: 'Budgets',
-      icon : PiggyBank
+      icon : PiggyBank,
+      path : '/dashboard/budget'
     },
     {
       id:3,
       name: 'Expenses',
-      icon : ReceiptText
+      icon : ReceiptText,
+      path : '/dashboard/expenses'
     },
     {
       id:4,
       name: 'Upgrade',
-      icon : ShieldCheck
+      icon : ShieldCheck,
+      path : '/dashboard/upgrade'
     },
     {
       id:5,
       name: 'Dashboard',
-      icon : LayoutGrid
-    },
+      icon : LayoutGrid,
+      path : '/dashboard/idk'
+    }
 
   ]
+
+  // const path = usePathname();
 
   return (
     <div className='h-screen p-5 border shadow-sm'>
@@ -45,8 +54,9 @@ function SideNav() {
 
       <div className='mt-5'>
         {menuList.map((menu,index)=>(
-          <h2 className='flex gap-1 items-center text-black 
-          font-semibold p-5 cursor-pointer rounded-md hover:bg-violet-200'>
+          <h2 className={`flex gap-1 items-center text-black 
+          font-semibold p-5 cursor-pointer rounded-md hover:bg-violet-2000
+          `}>
             <menu.icon/>
             {menu.name}
           </h2>
