@@ -10,10 +10,7 @@ export function Home() {
     <div>
       <Header/>
       <Hero/>
-
     </div>
-
-
   );
 }
 

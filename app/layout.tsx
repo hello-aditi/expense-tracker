@@ -1,32 +1,30 @@
 import React from 'react';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import { ClerkProvider, SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
-import './globals.css';
+// import DashboardPage from './dashboard/page';
+import Layout from './dashboard/layout';
+import { ClerkProvider, SignedIn, SignedOut } from '@clerk/nextjs';
 import { Home } from './Home';
-import DashboardPage from './(routes)/dashboard/dashboardPage';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout() {
   return (
     <ClerkProvider>
       <html lang="en">
         <body>
           <header>
             <SignedOut>
-              {/* <SignInButton /> */}
               <Home />
             </SignedOut>
             <SignedIn>
-              {/* <UserButton /> */}
-              <DashboardPage />
+              <Layout />
             </SignedIn>
           </header>
-          {/* <main>{children}</main> */}
         </body>
       </html>
     </ClerkProvider>
   );
 }
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

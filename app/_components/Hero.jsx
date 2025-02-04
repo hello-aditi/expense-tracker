@@ -16,7 +16,7 @@ function Hero() {
         Paisa sahi jagah kharch karo with Expensa...
       </p>
 
-        <SignInButton className="bg-primary hover:bg-black text-white  active:bg-black py-2 px-4 rounded w-30">
+        <SignInButton forceRedirectUrl='./dashboard' className="bg-primary hover:bg-black text-white  active:bg-black py-2 px-4 rounded w-30">
           Get Started
           </SignInButton> 
 
