@@ -1,12 +1,9 @@
-// app/(routes)/dashboard/budgets/page.tsx
-// "use client";
-
-import DashboardLayout from './layout';
+import React from "react";
 
 export default function BudgetsPage() {
   return (
-    <DashboardLayout>
-      <h1>Budgets</h1>
-    </DashboardLayout>
+    <div>
+      <h1>This is the Budgets Page</h1>
+    </div>
   );
 }

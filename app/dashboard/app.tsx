@@ -1,20 +1,20 @@
-// import { Layout } from 'lucide-react'
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { createBrowserRouter , createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
-import Layout from './layout'
-import DashboardPage from './dashboardpage'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import DashboardLayout from "./layout";
+import DashboardPage from "./dashboardpage";
+import BudgetsPage from "./Budgetspage";
 
-const router = createBrowserRouter(
-    createRoutesFromElements(
-        <Route path='/' element={<Layout />}>
-            <Route path='' element ={<DashboardPage />} />
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Dashboard Layout with Nested Routes */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="budgets" element={<BudgetsPage />} />
         </Route>
-    )
-)
+      </Routes>
+    </BrowserRouter>
+  );
+}
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
-        <RouterProvider router={router} />
-    </React.StrictMode>
-)
+export default App;

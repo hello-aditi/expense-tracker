@@ -2,7 +2,7 @@ import React from 'react';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 // import DashboardPage from './dashboard/page';
-import Layout from './dashboard/layout';
+import DashboardLayout from './dashboard/layout';
 import { ClerkProvider, SignedIn, SignedOut } from '@clerk/nextjs';
 import { Home } from './Home';
 
@@ -16,7 +16,7 @@ export default function RootLayout() {
               <Home />
             </SignedOut>
             <SignedIn>
-              <Layout />
+              <DashboardLayout />
             </SignedIn>
           </header>
         </body>
