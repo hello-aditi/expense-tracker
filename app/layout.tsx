@@ -5,12 +5,14 @@ import './globals.css';
 import DashboardLayout from './dashboard/layout';
 import { ClerkProvider, SignedIn, SignedOut } from '@clerk/nextjs';
 import { Home } from './Home';
+import { Toaster } from '@/components/ui/sonner';
 
 export default function RootLayout() {
   return (
     <ClerkProvider>
       <html lang="en">
         <body>
+          <Toaster />
           <header>
             <SignedOut>
               <Home />

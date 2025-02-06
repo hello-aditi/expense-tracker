@@ -14,7 +14,7 @@ function SideNav({ setPageName }) {
   ];
 
   return (
-    <div className='h-screen p-5 border shadow-sm w-64'>
+    <div className='h-screen p-5 border shadow-sm w-50'>
       <Image src={'/logo.svg'} alt='logo' width={140} height={50} />
       <div className='mt-5'>
         {menuList.map((menu) => (
