@@ -2,12 +2,15 @@
 import React, { useState } from 'react'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+
 import EmojiPicker from 'emoji-picker-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,7 +20,7 @@ import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
 
 
-function CreateBudget() {
+function CreateBudget({refreshData}) {
 
   const [emojiIcon, setEmojiIcon] = useState('🥰');
   const [openEmojiPicker, setOpenEmojiPicker] = useState(false);
@@ -39,6 +42,7 @@ function CreateBudget() {
     }).returning({insertedId:Budgets.id})
 
     if(result){
+      refreshData()
       toast("New Budget Created !!")
     }
   }
@@ -55,15 +59,19 @@ function CreateBudget() {
             </div>
         </DialogTrigger>
         <DialogContent>
-          <DialogHeader>
+          <DialogHeader className={undefined}>
             <DialogTitle>Decide Your Budget</DialogTitle>
             <DialogDescription>
-              <div className='mt-5'>
+            Fill in the details below to create your budget.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className='mt-5'>
                 <Button variant='outline'
                 size="lg"
                 onClick = {()=>setOpenEmojiPicker(!openEmojiPicker)}
                 >{emojiIcon}</Button>
-                <div className='absolute'>
+                <div className='absolute z-20'>
                   <EmojiPicker 
                   open={openEmojiPicker}
                   onEmojiClick={(e)=>{
@@ -85,16 +93,17 @@ function CreateBudget() {
                   onChange = {(e)=>setAmount(e.target.value)}
                   />
                 </div>
+                </div>
 
-                <Button 
+            <DialogFooter className="sm:justify-start">
+            <DialogClose asChild>
+            <Button 
                 disabled= {!(name&&amount)}
                 onClick={()=>onCreateBudget()}
-                className="mt-5">Create Budget</Button>
-
-
-                </div>
-            </DialogDescription>
-          </DialogHeader>
+                className="mt-5">Create Budget
+              </Button>
+            </DialogClose>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
