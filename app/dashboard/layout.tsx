@@ -1,59 +1,50 @@
-"use client"
-import React, { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation'; // ✅ Next.js navigation
-import SideNav from './_components/sideNav';
-// import DashboardHeader from './_components/dashboardHeader';
-import DashboardPage from './dashboardpage';
-import BudgetsPage from './Budgets/Budgetspage';
-import { db } from '../../utils/dbConfig';
-import { Budgets } from '../../utils/schema';
-import { useUser } from '@clerk/nextjs';
-import { eq } from 'drizzle-orm';
+"use client";
+
+import { usePathname, useParams } from "next/navigation";
+import SideNav from "./_components/sideNav";
+import DashboardPage from "./dashboardpage";
+import BudgetsPage from "./Budgets/Budgetspage";
+import ExpensePage from "./Expenses/[id]/page";
 
 function DashboardLayout() {
-  const router = useRouter();
   const pathname = usePathname();
-  const [pageName, setPageName] = useState("Dashboard");
+  const params = useParams();
 
-  useEffect(() => {
-    if (pathname === "/dashboard") setPageName("Dashboard");
-    else if (pathname === "/dashboard/budgets") setPageName("Budgets");
-  }, [pathname]);
+  console.log("🚀 Current pathname:", pathname); // ✅ Debugging
+  console.log("🚀 useParams Output (layout.tsx):", params); // ✅ Debugging
 
-  const {user} = useUser();
+  const id = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : null;
 
-  useEffect(()=>{
-    user&&checkUserBudgets();
-  },[user])
+  console.log("✅ Extracted ID (layout):", id); // ✅ Debugging
 
-  const checkUserBudgets = async() =>{
-    const result = await db.select()
-    .from(Budgets)
-    .where(eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress ))
+  let pageContent = <div>Loading...</div>; // Default to avoid empty page
 
-    console.log(result)
-
-    // if(result?.length==0)
-    // {
-    //   router.replace('/dashboard/budgets')
-    // } 
-    // The entire page reloads automatically
+  if (pathname === "/dashboard") {
+    pageContent = <DashboardPage />;
+  } else if (pathname === "/dashboard/budgets") {
+    pageContent = <BudgetsPage />;
+  } else if (pathname.startsWith("/dashboard/expenses/") && id) {
+    console.log("matching path")
   }
 
+  if (id) {
+    console.log("✅ ExpensePage Rendering for ID:", id);
+    pageContent = <ExpensePage params={{ id }} />;
+  } else {
+    console.warn("⚠️ ExpensePage ID not found");
+  }
 
+    console.log("✅ Extracted ID (layout):", id); // ✅ Debugging
+    console.log("Stopping here ? (layout) ")
+  
   return (
     <div className="flex">
-      <SideNav setPageName={setPageName} />
-      {/* <DashboardHeader /> */}
-      <div className="flex-1 p-5">
-        {pageName === "Dashboard" && <DashboardPage />}
-        {pageName === "Budgets" && <BudgetsPage />}
-      </div>
+      <SideNav setPageName={undefined} />
+      <div className="flex-1 p-5">{pageContent}</div>
     </div>
   );
 }
 
 export default DashboardLayout;
 
-// useState
-// useRef
+
