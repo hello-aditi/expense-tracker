@@ -5,14 +5,17 @@ import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { db } from "utils/dbConfig";
 import { Budgets, Expenses } from "utils/schema";
-import { getTableColumns, sql, eq } from "drizzle-orm";
+import { getTableColumns, sql, eq, desc } from "drizzle-orm";
 import BudgetItem from "app/dashboard/Budgets/_components/BudgetItem";
 import AddExpense from "../_components/AddExpense";
+import ExpenseListTable from "../_components/ExpenseListTable";
 
 function ExpensePage() {
   const params = useParams();
   const { user } = useUser();
   const [budgetInfo, setBudgetInfo] = useState(null);
+
+  const [expensesList, setExpensesList] = useState([]);
 
   // Ensure params.id is properly extracted
   const budgetId = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : null;
@@ -27,7 +30,10 @@ function ExpensePage() {
     } else {
       console.warn("⚠️ Skipping fetch: Missing ID or user email.");
     }
+
   }, [budgetId, user]);
+
+  // To get all the budget Information 
 
   const getBudgetInfo = async () => {
     try {
@@ -65,7 +71,19 @@ function ExpensePage() {
     } catch (error) {
       console.error("❌ Error fetching budget:", error);
     }
+
+    getExpensesList();
   };
+
+  // To know the latest expenses 
+
+  const getExpensesList = async() => {
+      const result = await db.select().from(Expenses)
+      .where(eq(Expenses.budgetId, params.id))
+      .orderBy(desc(Expenses.date));
+      setExpensesList(result);
+      console.log(result)
+  }
 
   return (
     <div className="p-10">
@@ -80,9 +98,15 @@ function ExpensePage() {
         ) : (
           <div className="h-[150px] w-full bg-slate-200 rounded-lg animate-pulse"></div>
         )}
-        <AddExpense />
+        <AddExpense user={user} refreshData={()=>getBudgetInfo()}/>
+      </div>
+
+      <div className="mt-4">
+        <h2 className="font bold text-lg">Latest Expenses</h2>
+        <ExpenseListTable expensesList = {expensesList}/>
       </div>
     </div>
+    
   );
 }
 
