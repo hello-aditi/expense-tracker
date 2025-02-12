@@ -6,6 +6,7 @@ import { db } from 'utils/dbConfig';
 import { Budgets, Expenses } from 'utils/schema';
 import { toast } from 'sonner'
 import moment from 'moment';
+import { date } from 'drizzle-orm/mysql-core';
 
 function AddExpense({user, refreshData}) {
 
@@ -18,7 +19,7 @@ function AddExpense({user, refreshData}) {
       name: name,
       amount : amount,
       budgetId: params.id,
-      createdAt :moment().format('')
+      createdBy : user?.primaryEmailAddress?.emailAddress
 
     }).returning({insertedId : Budgets.id});
 
