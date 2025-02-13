@@ -10,31 +10,110 @@ import BarChartDashboard from "./_components/BarChartDashboard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
+
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
   const [budgetList, setBudgetList] = useState([]);
 
   useEffect(() => {
-    console.log("User data:", user);
     if (user && user.primaryEmailAddress?.emailAddress) {
       getBudgetList();
     }
   }, [user]);
 
-  const getBudgetList = async () => {
+  const getCurrentMonth = () => new Date().getMonth() + 1;
+  const getCurrentYear = () => new Date().getFullYear();
+
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
+  const [selectedYear, setSelectedYear] = useState(getCurrentYear());
+
+  const currentMonth = getCurrentMonth();
+  const currentYear = getCurrentYear();
+
+  const years = Array.from({ length: 6 }, (_, i) => currentYear - i);
+
+  useEffect(() => {
+    getBudgetList(selectedMonth, selectedYear);
+  }, [selectedMonth, selectedYear]);
+
+  const handleMonthChange = (e) => {
+    const selectedM = parseInt(e.target.value);
+
+    if (selectedYear === currentYear && selectedM > currentMonth) return;
+
+    setSelectedMonth(selectedM);
+  };
+
+  const handleYearChange = (e) => {
+    const selectedY = parseInt(e.target.value);
+
+    if (selectedY > currentYear) return;
+
+    setSelectedYear(selectedY);
+
+    // Adjust month selection if needed
+    if (selectedY === currentYear && selectedMonth > currentMonth) {
+      setSelectedMonth(currentMonth);
+    }
+  };
+
+  const resetExpensesIfNewMonth = async () => {
+    const lastBudgetEntry = await db
+      .select()
+      .from(Budgets)
+      .where(eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress))
+      .orderBy(sql`${Budgets.date} DESC`)
+      .limit(1);
+
+    if (lastBudgetEntry.length > 0) {
+      const lastBudgetDate = new Date(lastBudgetEntry[0].date);
+      const lastBudgetMonth = lastBudgetDate.getMonth() + 1;
+      const lastBudgetYear = lastBudgetDate.getFullYear();
+
+      if (lastBudgetMonth !== currentMonth || lastBudgetYear !== currentYear) {
+        console.log("New month detected! Creating a new budget entry.");
+
+        await db.insert(Budgets).values({
+          createdBy: user?.primaryEmailAddress?.emailAddress,
+          date: new Date(),
+        });
+      }
+    } else {
+      console.log("No budget found. Creating a new budget entry.");
+      await db.insert(Budgets).values({
+        createdBy: user?.primaryEmailAddress?.emailAddress,
+        date: new Date(),
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (user && user.primaryEmailAddress?.emailAddress) {
+      resetExpensesIfNewMonth();
+      getBudgetList(selectedMonth, selectedYear);
+    }
+  }, [user, selectedMonth, selectedYear]);
+
+  const getBudgetList = async (month = getCurrentMonth(), year = getCurrentYear()) => {
     try {
-      console.log("Fetching budget list...");
+      console.log("Fetching budget list for:", month, year);
 
       const result = await db
         .select({
           ...getTableColumns(Budgets),
-          totalSpend: sql`SUM(${Expenses.amount}::NUMERIC)`.mapWith(Number),
-          totalItem: sql`COUNT(${Expenses.id})`.mapWith(Number),
+          totalSpend: sql`COALESCE(SUM(${Expenses.amount}::NUMERIC), 0)`.mapWith(Number),
+          totalItem: sql`COALESCE(COUNT(${Expenses.id}), 0)`.mapWith(Number),
         })
         .from(Budgets)
         .leftJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
-        .where(eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress))
+        .where(
+          sql`
+            EXTRACT(MONTH FROM ${Budgets.date}::DATE) = ${month} 
+            AND EXTRACT(YEAR FROM ${Budgets.date}::DATE) = ${year}
+            AND ${Budgets.createdBy} = ${user?.primaryEmailAddress?.emailAddress}
+          `
+        )
         .groupBy(Budgets.id);
 
       console.log("Budget List Result:", result);
@@ -50,9 +129,40 @@ export default function DashboardPage() {
         <div className="p-5">
           <div>
             <h2 className="font-bold text-3xl">Hello, {user?.fullName}</h2>
-            <p className="text-gray-500">
-              Where's your money going? Let's have a look...
-            </p>
+                <p className="text-gray-500">
+                  Where's your money going? Let's have a look...
+                </p>
+          </div>
+
+          <div className="flex space-x-4">
+            {/* Month Dropdown */}
+            <select
+              className="p-2 border rounded-lg bg-white"
+              value={selectedMonth}
+              onChange={handleMonthChange}
+            >
+              {Array.from({ length: 12 }, (_, index) => {
+                const isFuture = selectedYear === currentYear && index + 1 > currentMonth;
+                return (
+                  <option key={index + 1} value={index + 1} disabled={isFuture}>
+                    {new Date(0, index).toLocaleString("default", { month: "long" })}
+                  </option>
+                );
+              })}
+            </select>
+
+            {/* Year Dropdown */}
+            <select
+              className="p-2 border rounded-lg bg-white"
+              value={selectedYear}
+              onChange={handleYearChange}
+            >
+              {years.map((year) => (
+                <option key={year} value={year} disabled={year > currentYear}>
+                  {year}
+                </option>
+              ))}
+            </select>
           </div>
 
           <CardsInfo budgetList={budgetList} />
@@ -69,7 +179,7 @@ export default function DashboardPage() {
           <h2 className="font-bold text-3xl">Hello, {user?.fullName}</h2>
           <h2 className="text-xl font-bold text-gray-600">No budget data found</h2>
           <p className="text-gray-500">Start by adding your first budget below.</p>
-          <Button onClick={() => router.push("/dashboard/budgets")}>
+          <Button className="w-28 p-5" onClick={() => router.push("/dashboard/budgets")}>
             Add Budget
           </Button>
         </div>
