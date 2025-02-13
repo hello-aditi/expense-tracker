@@ -19,12 +19,14 @@ function DashboardLayout() {
 
   let pageContent = <div>Loading...</div>; // Default to avoid empty page
 
-  if (pathname === "/dashboard") {
+  if (pathname === "/") {
     pageContent = <DashboardPage />;
   } else if (pathname === "/dashboard/budgets") {
     pageContent = <BudgetsPage />;
   } else if (pathname.startsWith("/dashboard/expenses/") && id) {
     console.log("matching path")
+  } else if (pathname === "/dashboard") {
+    pageContent = <DashboardPage />;
   }
 
   if (id) {

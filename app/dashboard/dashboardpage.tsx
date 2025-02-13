@@ -10,7 +10,6 @@ import BarChartDashboard from "./_components/BarChartDashboard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
-
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
@@ -21,6 +20,31 @@ export default function DashboardPage() {
       getBudgetList();
     }
   }, [user]);
+
+
+  const [isNewUser, setIsNewUser] = useState(false);
+
+useEffect(() => {
+  if (user && user.primaryEmailAddress?.emailAddress) {
+    checkIfNewUser();
+  }
+}, [user]);
+
+const checkIfNewUser = async () => {
+  try {
+    const previousBudgets = await db
+      .select()
+      .from(Budgets)
+      .where(eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress))
+      .limit(1); // Only check if at least one budget exists
+
+    setIsNewUser(previousBudgets.length === 0);
+  } catch (error) {
+    console.error("Error checking user budget history:", error);
+  }
+};
+
+
 
   const getCurrentMonth = () => new Date().getMonth() + 1;
   const getCurrentYear = () => new Date().getFullYear();
@@ -124,66 +148,69 @@ export default function DashboardPage() {
   };
 
   return (
-    <div>
-      {budgetList?.length > 0 ? (
-        <div className="p-5">
-          <div>
-            <h2 className="font-bold text-3xl">Hello, {user?.fullName}</h2>
-                <p className="text-gray-500">
-                  Where's your money going? Let's have a look...
-                </p>
-          </div>
+    <div className="p-5">
+      <div>
+        <h2 className="font-bold text-3xl">Hello, {user?.fullName}</h2>
+        <p className="text-gray-500">Where's your money going? Let's have a look...</p>
+      </div>
 
-          <div className="flex space-x-4">
-            {/* Month Dropdown */}
-            <select
-              className="p-2 border rounded-lg bg-white"
-              value={selectedMonth}
-              onChange={handleMonthChange}
-            >
-              {Array.from({ length: 12 }, (_, index) => {
-                const isFuture = selectedYear === currentYear && index + 1 > currentMonth;
-                return (
-                  <option key={index + 1} value={index + 1} disabled={isFuture}>
-                    {new Date(0, index).toLocaleString("default", { month: "long" })}
-                  </option>
-                );
-              })}
-            </select>
-
-            {/* Year Dropdown */}
-            <select
-              className="p-2 border rounded-lg bg-white"
-              value={selectedYear}
-              onChange={handleYearChange}
-            >
-              {years.map((year) => (
-                <option key={year} value={year} disabled={year > currentYear}>
-                  {year}
+      {!isNewUser && (
+        <div className="flex space-x-4 my-4">
+          {/* Month Dropdown */}
+          <select
+            className="p-2 border rounded-lg bg-white"
+            value={selectedMonth}
+            onChange={handleMonthChange}
+          >
+            {Array.from({ length: 12 }, (_, index) => {
+              const isFuture = selectedYear === currentYear && index + 1 > currentMonth;
+              return (
+                <option key={index + 1} value={index + 1} disabled={isFuture}>
+                  {new Date(0, index).toLocaleString("default", { month: "long" })}
                 </option>
-              ))}
-            </select>
-          </div>
+              );
+            })}
+          </select>
 
+          {/* Year Dropdown */}
+          <select
+            className="p-2 border rounded-lg bg-white"
+            value={selectedYear}
+            onChange={handleYearChange}
+          >
+            {years.map((year) => (
+              <option key={year} value={year} disabled={year > currentYear}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {budgetList?.length > 0 ? (
+        <>
           <CardsInfo budgetList={budgetList} />
-
           <div className="grid grid-cols-2 md:grid-cols-2 mt-6">
             <div className="md:col-span-4">
               <BarChartDashboard budgetList={budgetList} />
             </div>
             <div>Other Content</div>
           </div>
-        </div>
+        </>
       ) : (
         <div className="flex flex-col mt-10 p-5">
-          <h2 className="font-bold text-3xl">Hello, {user?.fullName}</h2>
-          <h2 className="text-xl font-bold text-gray-600">No budget data found</h2>
-          <p className="text-gray-500">Start by adding your first budget below.</p>
-          <Button className="w-28 p-5" onClick={() => router.push("/dashboard/budgets")}>
-            Add Budget
-          </Button>
+          <h2 className="text-xl font-bold text-gray-600">No data found</h2>
+          <p className="text-gray-500">
+            {isNewUser
+              ? "Start by adding your first budget below."
+              : "No budget data found for the selected month and year."}
+          </p>
+          {isNewUser && (
+            <Button className="w-28 p-5" onClick={() => router.push("/dashboard/budgets")}>Add Budget</Button>
+          )}
         </div>
       )}
     </div>
+
   );
 }

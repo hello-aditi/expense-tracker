@@ -38,6 +38,20 @@ function ExpensePage() {
 
   // Ensure params.id is properly extracted
   const budgetId = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : null;
+
+  // Get current month and year
+const currentDate = new Date();
+const currentMonth = currentDate.getMonth() + 1; // Months are 0-indexed
+const currentYear = currentDate.getFullYear();
+
+// Extract budget's month and year
+const budgetDate = budgetInfo?.createdAt ? new Date(budgetInfo.createdAt) : null;
+const budgetMonth = budgetDate ? budgetDate.getMonth() + 1 : null;
+const budgetYear = budgetDate ? budgetDate.getFullYear() : null;
+
+// Check if the budget is from the current month
+const isCurrentMonthBudget = budgetMonth === currentMonth && budgetYear === currentYear;
+
   
   console.log("🚀 Extracted ID (ExpensePage):", budgetId);
 
