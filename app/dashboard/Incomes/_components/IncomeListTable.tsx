@@ -19,20 +19,20 @@ function IncomeListTable({ incomeList, refreshData }) {
     };
 
     return (
-        <div className="overflow-hidden rounded-lg shadow-lg">
+        <div className="overflow-hidden rounded-lg shadow-lg mt-3">
             <table className="min-w-full bg-white shadow-md rounded-lg">
                 <thead className="bg-fuchsia-300 text-black">
                     <tr>
                         <th className="py-3 px-6 text-left">Name</th>
                         <th className="py-3 px-6 text-left">Amount</th>
                         <th className="py-3 px-6 text-left">Date</th>
-                        <th className="py-3 px-6 text-center">Action</th>
+                        <th className="py-3 px-6 text-left">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {incomeList.length > 0 ? (
                         incomeList.map((income, index) => (
-                            <tr key={income.id} className={`border-b ${index % 2 === 0 ? "bg-fuchsia-100" : "bg-white"} hover:bg-fuchsia-50 transition duration-300`}>
+                            <tr key={income.id} className={` border-b ${index % 2 === 0 ? "bg-fuchsia-100" : "bg-white"} hover:bg-fuchsia-50 transition duration-300`}>
                                 <td className="py-3 px-6">{income.source}</td>
                                 <td className="py-3 px-6">₹{income.amount}</td>
                                 <td className="py-3 px-6">{moment(income.date).format("DD MMM YYYY")}</td>

@@ -37,7 +37,7 @@ function ExpenseListTable({expensesList, refreshData}) {
                 <h2>{expenses.amount}</h2>
                 <h2>{moment(expenses.date).format("DD MMM YYYY")}</h2>
                 <h2>
-                    <Trash className='text-red-600 cursor-pointer'
+                    <Trash className='text-red-600 cursor-pointer hover:scale-110 transition-transform'
                     onClick={()=>deleteExpense(expenses)}
                     />
                 </h2>

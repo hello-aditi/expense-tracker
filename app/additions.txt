@@ -1,0 +1,11 @@
+ dashboard page
+1. Income chart 
+2. redirection on clicking on cards
+3. % showing of remaning amount
+4. think of more charts for comparisons
+5. Expense comparison chart
+6. Savings comparison chart
+
+ income page
+1. add month and year filter
+

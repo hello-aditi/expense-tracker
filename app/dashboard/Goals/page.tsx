@@ -1,13 +1,11 @@
 import React from 'react'
-import SavingsGoals from './_components/SavingsGoals'
 
-
-function MyGoalsPage() {
+function GoalsPage() {
   return (
-    <div>
-        <SavingsGoals/>
+    <div className='p-10'>
+      <h1 className="font-bold text-3xl">My Goals</h1>
     </div>
   )
 }
 
-export default MyGoalsPage
+export default GoalsPage

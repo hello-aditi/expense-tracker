@@ -64,7 +64,7 @@ function CardsInfo({ budgetList, incomeList }) {
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <h3 className="text-sm">Total earnings for the month</h3>
+                <h3 className="text-sm">Total earnings for this month</h3>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -82,7 +82,7 @@ function CardsInfo({ budgetList, incomeList }) {
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <h3 className="text-sm">Planned spending for different categories in the month</h3>
+                <h3 className="text-sm">Planned spending for different categories in this month</h3>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
