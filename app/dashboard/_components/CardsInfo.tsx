@@ -1,6 +1,14 @@
 import { PiggyBank, ReceiptText, Wallet } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+
+
 function CardsInfo({ budgetList, incomeList }) {
   const [totalBudget, setTotalBudget] = useState(0);
   const [totalSpend, setTotalSpend] = useState(0);
@@ -13,7 +21,7 @@ function CardsInfo({ budgetList, incomeList }) {
     if (incomeList && incomeList.length > 0) {
       calculateIncome();
     }
-  }, [budgetList, incomeList]); 
+  }, [budgetList, incomeList]);
 
   const calculateCardInfo = () => {
     let totalBudget_ = 0;
@@ -32,7 +40,7 @@ function CardsInfo({ budgetList, incomeList }) {
     let totalIncome_ = incomeList.reduce((sum, income) => sum + Number(income.totalIncome || 0), 0);
     setTotalIncome(totalIncome_);
   };
-  
+
 
   // ✅ Utilization percentage calculation
   const utilization = totalIncome ? ((totalSpend / totalIncome) * 100).toFixed(1) : 0;
@@ -43,40 +51,79 @@ function CardsInfo({ budgetList, incomeList }) {
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
           {/* Total Income Card */}
-          <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
-            <div>
-              <h2 className="text-sm">Total Income</h2>
-              <h2 className="font-bold text-2xl">{totalIncome}</h2>
-            </div>
-            <PiggyBank className="p-3 h-12 w-12 bg-green-400 rounded-full" />
-          </div>
 
-          {/* Total Budget */}
-          <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
-            <div>
-              <h2 className="text-sm">Total Budget</h2>
-              <h2 className="font-bold text-2xl">{totalBudget}</h2>
-            </div>
-            <Wallet className="p-3 h-12 w-12 bg-purple-400 rounded-full" />
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
+                  <div>
+                    <h2 className="text-sm">Total Income</h2>
+                    <h2 className="font-bold text-2xl">{totalIncome}</h2>
+                  </div>
+                  <PiggyBank className="p-3 h-12 w-12 bg-green-400 rounded-full" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <h3 className="text-sm">Total earnings for the month</h3>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-          {/* Total Spending */}
-          <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
-            <div>
-              <h2 className="text-sm">Total Spending</h2>
-              <h2 className="font-bold text-2xl">{totalSpend}</h2>
-            </div>
-            <ReceiptText className="p-3 h-12 w-12 bg-red-400 rounded-full" />
-          </div>
 
-          {/* Remaining Budget */}
-          <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
-            <div>
-              <h2 className="text-sm">Remaining Balance</h2>
-              <h2 className="font-bold text-2xl">{totalIncome - totalSpend}</h2>
-            </div>
-            <Wallet className="p-3 h-12 w-12 bg-blue-400 rounded-full" />
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
+                  <div>
+                    <h2 className="text-sm">Budget Allotted</h2>
+                    <h2 className="font-bold text-2xl">{totalBudget}</h2>
+                  </div>
+                  <Wallet className="p-3 h-12 w-12 bg-purple-400 rounded-full" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <h3 className="text-sm">Planned spending for different categories in the month</h3>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
+                  <div>
+                    <h2 className="text-sm">Amount Spent</h2>
+                    <h2 className="font-bold text-2xl">{totalSpend}</h2>
+                  </div>
+                  <ReceiptText className="p-3 h-12 w-12 bg-red-400 rounded-full" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <h3 className="text-sm">Total expenses recorded</h3>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
+                  <div>
+                    <h2 className="text-sm">Remaining Balance</h2>
+                    <h2 className="font-bold text-2xl">{totalIncome - totalSpend}</h2>
+                  </div>
+                  <Wallet className="p-3 h-12 w-12 bg-blue-400 rounded-full" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <h2 className="text-sm">Unspent income after expenses incurred</h2>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+
+
 
           {/* Utilization Percentage (Top Right Corner) */}
           <div className="absolute top-2 right-5">
@@ -97,6 +144,7 @@ function CardsInfo({ budgetList, incomeList }) {
       )}
     </div>
   );
+
 }
 
 export default CardsInfo;
