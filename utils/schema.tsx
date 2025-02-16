@@ -17,3 +17,11 @@ export const Expenses = pgTable('Expenses',{
     createdBy: varchar('createdBy').notNull(),
     date: timestamp('date', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const Incomes = pgTable('Incomes', {
+    id: serial('id').primaryKey(),
+    source: varchar('source').notNull(), 
+    amount: integer('amount').notNull(),
+    createdBy: varchar('createdBy').notNull(),
+    date: timestamp('date', { withTimezone: true }).notNull().defaultNow(),
+});

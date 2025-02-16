@@ -5,6 +5,8 @@ import SideNav from "./_components/sideNav";
 import DashboardPage from "./dashboardpage";
 import BudgetsPage from "./Budgets/Budgetspage";
 import ExpensePage from "./Expenses/[id]/page";
+import MyGoalsPage from "./Goals/page";
+import IncomePage from "./Incomes/page";
 
 function DashboardLayout() {
   const pathname = usePathname();
@@ -27,6 +29,10 @@ function DashboardLayout() {
     console.log("matching path")
   } else if (pathname === "/dashboard") {
     pageContent = <DashboardPage />;
+  } else if (pathname === "/dashboard/goals") {
+    pageContent = <MyGoalsPage />;
+  } else if (pathname === "/dashboard/incomes") {
+    pageContent = <IncomePage />;
   }
 
   if (id) {

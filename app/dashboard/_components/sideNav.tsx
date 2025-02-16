@@ -9,8 +9,8 @@ function SideNav({ setPageName }) {
   const menuList = [
     { id: 1, name: "Dashboard", icon: LayoutGrid, path: "/dashboard" },
     { id: 2, name: "Budgets", icon: PiggyBank, path: "/dashboard/budgets" },
-    { id: 3, name: "Expenses", icon: ReceiptText, path: "/dashboard/expenses" }, // ✅ Dynamic ID here if needed
-    { id: 4, name: "Upgrade", icon: ShieldCheck, path: "/dashboard/upgrade" },
+    { id: 3, name: "My Goals", icon: ReceiptText, path: "/dashboard/goals" },
+    { id: 4, name: "Incomes", icon: ShieldCheck, path: "/dashboard/incomes" },
   ];
 
   return (
