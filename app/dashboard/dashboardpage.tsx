@@ -4,45 +4,48 @@ import { useUser } from "@clerk/nextjs";
 import React, { useEffect, useState } from "react";
 import { getTableColumns, sql, eq } from "drizzle-orm";
 import { db } from "utils/dbConfig";
-import { Budgets, Expenses } from "utils/schema";
+import { Budgets, Expenses, Incomes } from "utils/schema";
 import CardsInfo from "./_components/CardsInfo";
 import BarChartDashboard from "./_components/BarChartDashboard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import FinancialSummary from "./_components/FinancialSummary";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
   const [budgetList, setBudgetList] = useState([]);
+  const [incomeList, setIncomeList] = useState([]);
 
   useEffect(() => {
     if (user && user.primaryEmailAddress?.emailAddress) {
       getBudgetList();
+      getIncomeList();
     }
   }, [user]);
 
 
   const [isNewUser, setIsNewUser] = useState(false);
 
-useEffect(() => {
-  if (user && user.primaryEmailAddress?.emailAddress) {
-    checkIfNewUser();
-  }
-}, [user]);
+  useEffect(() => {
+    if (user && user.primaryEmailAddress?.emailAddress) {
+      checkIfNewUser();
+    }
+  }, [user]);
 
-const checkIfNewUser = async () => {
-  try {
-    const previousBudgets = await db
-      .select()
-      .from(Budgets)
-      .where(eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress))
-      .limit(1); // Only check if at least one budget exists
+  const checkIfNewUser = async () => {
+    try {
+      const previousBudgets = await db
+        .select()
+        .from(Budgets)
+        .where(eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress))
+        .limit(1); // Only check if at least one budget exists
 
-    setIsNewUser(previousBudgets.length === 0);
-  } catch (error) {
-    console.error("Error checking user budget history:", error);
-  }
-};
+      setIsNewUser(previousBudgets.length === 0);
+    } catch (error) {
+      console.error("Error checking user budget history:", error);
+    }
+  };
 
 
 
@@ -59,6 +62,7 @@ const checkIfNewUser = async () => {
 
   useEffect(() => {
     getBudgetList(selectedMonth, selectedYear);
+    getIncomeList(selectedMonth, selectedYear);
   }, [selectedMonth, selectedYear]);
 
   const handleMonthChange = (e) => {
@@ -116,6 +120,7 @@ const checkIfNewUser = async () => {
     if (user && user.primaryEmailAddress?.emailAddress) {
       resetExpensesIfNewMonth();
       getBudgetList(selectedMonth, selectedYear);
+      getIncomeList(selectedMonth, selectedYear);
     }
   }, [user, selectedMonth, selectedYear]);
 
@@ -146,6 +151,32 @@ const checkIfNewUser = async () => {
       console.error("Error fetching budget list:", error);
     }
   };
+
+  const getIncomeList = async (month = getCurrentMonth(), year = getCurrentYear()) => {
+    try {
+      console.log("Fetching income for the month and year : ", month, year);
+
+      const result = await db
+        .select({
+          totalIncome: sql`SUM(amount)`.as("totalIncome")
+        })
+        .from(Incomes)
+        .where(
+          sql`
+          EXTRACT(MONTH FROM ${Incomes.date}::DATE) = ${month}
+          AND EXTRACT(YEAR FROM ${Incomes.date}::DATE) = ${year}
+          AND ${Incomes.createdBy} = ${user?.primaryEmailAddress?.emailAddress}
+        `
+        )
+
+
+      console.log("fetched incomes :", result);
+      setIncomeList(result);
+    }
+    catch (error) {
+      console.error(error);
+    }
+  }
 
   return (
     <div className="p-5">
@@ -189,7 +220,9 @@ const checkIfNewUser = async () => {
 
       {budgetList?.length > 0 ? (
         <>
-          <CardsInfo budgetList={budgetList} />
+          <CardsInfo budgetList={budgetList} incomeList={incomeList} />
+          
+           {/* <FinancialSummary budgetList={budgetList} incomeList={incomeList}/> */}
           <div className="grid grid-cols-2 md:grid-cols-2 mt-6">
             <div className="md:col-span-4">
               <BarChartDashboard budgetList={budgetList} />
