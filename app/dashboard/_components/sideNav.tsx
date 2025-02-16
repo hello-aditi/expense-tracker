@@ -1,6 +1,6 @@
 "use client";
 import { UserButton } from "@clerk/nextjs";
-import { LayoutGrid, PiggyBank, ReceiptText, ShieldCheck } from "lucide-react";
+import { Goal, LayoutGrid, PiggyBank, ReceiptText, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -9,8 +9,8 @@ function SideNav({ setPageName }) {
   const menuList = [
     { id: 1, name: "Dashboard", icon: LayoutGrid, path: "/dashboard" },
     { id: 2, name: "Budgets", icon: PiggyBank, path: "/dashboard/budgets" },
-    { id: 3, name: "My Goals", icon: ReceiptText, path: "/dashboard/goals" },
-    { id: 4, name: "Incomes", icon: ShieldCheck, path: "/dashboard/incomes" },
+    { id: 3, name: "Incomes", icon: ShieldCheck, path: "/dashboard/incomes" },
+    { id: 4, name: "My Goals", icon: Goal, path: "/dashboard/goals" },
   ];
 
   return (
