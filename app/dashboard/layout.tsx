@@ -12,14 +12,14 @@ function DashboardLayout() {
   const pathname = usePathname();
   const params = useParams();
 
-  console.log("🚀 Current pathname:", pathname); // ✅ Debugging
-  console.log("🚀 useParams Output (layout.tsx):", params); // ✅ Debugging
+  console.log("Current pathname:", pathname); 
+  console.log("useParams Output (layout.tsx):", params); 
 
   const id = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : null;
 
-  console.log("✅ Extracted ID (layout):", id); // ✅ Debugging
+  console.log("✅ Extracted ID (layout):", id); 
 
-  let pageContent = <div>Loading...</div>; // Default to avoid empty page
+  let pageContent = <div>Loading...</div>; 
 
   if (pathname === "/") {
     pageContent = <DashboardPage />;
@@ -42,7 +42,7 @@ function DashboardLayout() {
     console.warn("⚠️ ExpensePage ID not found");
   }
 
-    console.log("✅ Extracted ID (layout):", id); // ✅ Debugging
+    console.log("✅ Extracted ID (layout):", id);
     console.log("Stopping here ? (layout) ")
   
   return (
@@ -54,5 +54,3 @@ function DashboardLayout() {
 }
 
 export default DashboardLayout;
-
-

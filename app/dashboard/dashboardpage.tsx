@@ -9,7 +9,6 @@ import CardsInfo from "./_components/CardsInfo";
 import BarChartDashboard from "./_components/BarChartDashboard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import FinancialSummary from "./_components/FinancialSummary";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -46,8 +45,6 @@ export default function DashboardPage() {
       console.error("Error checking user budget history:", error);
     }
   };
-
-
 
   const getCurrentMonth = () => new Date().getMonth() + 1;
   const getCurrentYear = () => new Date().getFullYear();
@@ -243,6 +240,8 @@ export default function DashboardPage() {
           )}
         </div>
       )}
+
+      
     </div>
 
   );

@@ -22,17 +22,22 @@ import {
 } from "@/components/ui/dialog"
 
 function AddIncome() {
+
+    const { user } = useUser();
     const [name, setName] = useState('');
     const [amount, setAmount] = useState('');
     const [totalIncome, setTotalIncome] = useState(0);
     const [incomeList, setIncomeList] = useState([]);
 
-    const { user } = useUser();
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [selectedMonth, setSelectedMonth] = useState(currentYear);
+
 
     const fetchTotalIncome = async () => {
         try {
-            const currentMonth = new Date().getMonth() + 1;
-            const currentYear = new Date().getFullYear();
 
             const result = await db
                 .select({ sum: sql`SUM(amount)`.mapWith(Number) })
@@ -96,6 +101,11 @@ function AddIncome() {
         }
     };
 
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
     return (
         <div className="relative p-5">
             {/* Total Income Display - Styled & Animated */}
@@ -106,8 +116,8 @@ function AddIncome() {
             {/* Add Income Button */}
             <Dialog>
                 <DialogTrigger asChild>
-                    <Button className= 'top-2 right-5 shadow-lg text-l font-bold text-white'> + Add Income ----
-                    Total Income: ₹{totalIncome}
+                    <Button className='top-2 right-5 shadow-lg text-l font-bold text-white'> + Add Income ----
+                        Total Income: ₹{totalIncome}
                     </Button>
                     {/* <div className="absolute top-2 right-5 bg-[#86198f] text-white p-4 rounded-lg shadow-lg text-l font-bold">
                         Total Income: ₹{totalIncome}
@@ -147,6 +157,41 @@ function AddIncome() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+
+            {/* FILTERS  */}
+            <div>
+                {/* Year filter  */}
+                <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(Number(e.target.value))}
+                >
+                    {[0, 1, 2, 3, 4, 5].map((i) => {
+                        const year = new Date().getFullYear() - i;
+                        return (
+                            <option key={year} value={year}>
+                                {year}
+                            </option>
+                        );
+                    })}
+                </select>
+
+                {/* Month Filter  */}
+                <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                >
+                    {months.map((month, index) =>
+                        <option
+                            value="index"
+                            key={index + 1}>
+                            {month}
+                        </option>
+                    )}
+
+                </select>
+
+            </div>
 
             {/* Income List */}
             <div className="mt-6">

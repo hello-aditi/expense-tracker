@@ -40,28 +40,27 @@ function ExpensePage() {
   const budgetId = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : null;
 
   // Get current month and year
-const currentDate = new Date();
-const currentMonth = currentDate.getMonth() + 1; // Months are 0-indexed
-const currentYear = currentDate.getFullYear();
+const currentMonth = new Date().getMonth() + 1; // Months are 0-indexed
+const currentYear = new Date().getFullYear();
 
-// Extract budget's month and year
-const budgetDate = budgetInfo?.createdAt ? new Date(budgetInfo.createdAt) : null;
-const budgetMonth = budgetDate ? budgetDate.getMonth() + 1 : null;
-const budgetYear = budgetDate ? budgetDate.getFullYear() : null;
+// // Extract budget's month and year
+// const budgetDate = budgetInfo?.createdAt ? new Date(budgetInfo.createdAt) : null;
+// const budgetMonth = budgetDate ? budgetDate.getMonth() + 1 : null;
+// const budgetYear = budgetDate ? budgetDate.getFullYear() : null;
 
-// Check if the budget is from the current month
-const isCurrentMonthBudget = budgetMonth === currentMonth && budgetYear === currentYear;
+// // Check if the budget is from the current month
+// const isCurrentMonthBudget = budgetMonth === currentMonth && budgetYear === currentYear;
 
   
-  console.log("🚀 Extracted ID (ExpensePage):", budgetId);
+  console.log("Extracted ID (ExpensePage):", budgetId);
 
   useEffect(() => {
-    console.log("🟢 useEffect Triggered: ID:", budgetId, "User:", user);
+    console.log("useEffect Triggered: ID:", budgetId, "User:", user);
 
     if (budgetId && user?.primaryEmailAddress?.emailAddress) {
       getBudgetInfo();
     } else {
-      console.warn("⚠️ Skipping fetch: Missing ID or user email.");
+      console.warn("Skipping fetch: Missing ID or user email.");
     }
 
   }, [budgetId, user]);
@@ -70,11 +69,11 @@ const isCurrentMonthBudget = budgetMonth === currentMonth && budgetYear === curr
 
   const getBudgetInfo = async () => {
     try {
-      console.log("🔍 Fetching budget for ID:", budgetId);
-      console.log("👤 User Email:", user?.primaryEmailAddress?.emailAddress);
+      console.log("budget for ID:", budgetId);
+      console.log("User Email:", user?.primaryEmailAddress?.emailAddress);
 
       if (!budgetId || !user?.primaryEmailAddress?.emailAddress) {
-        console.warn("🚨 Missing ID or user email, skipping fetch.");
+        console.warn("Missing ID or user email, skipping fetch.");
         return;
       }
 
@@ -91,10 +90,10 @@ const isCurrentMonthBudget = budgetMonth === currentMonth && budgetYear === curr
       )
       .groupBy(Budgets.id);
 
-      console.log("🟢 Query Result:", result);
+      console.log("Query Result:", result);
 
       if (result.length === 0) {
-        console.warn("⚠️ No data found for ID:", budgetId);
+        console.warn("No data found for ID:", budgetId);
         setBudgetInfo(null);
         return;
       }
@@ -102,9 +101,8 @@ const isCurrentMonthBudget = budgetMonth === currentMonth && budgetYear === curr
       setBudgetInfo(result[0]);
 
     } catch (error) {
-      console.error("❌ Error fetching budget:", error);
+      console.error("Error fetching budget:", error);
     }
-
     getExpensesList();
   };
 

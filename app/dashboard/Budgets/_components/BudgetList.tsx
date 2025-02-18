@@ -20,6 +20,8 @@ function BudgetList() {
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
 
+  console.log("month now :" ,currentMonth);
+
   useEffect(() => {
     if (user && user.primaryEmailAddress?.emailAddress) {
       getBudgetList();
@@ -47,52 +49,59 @@ function BudgetList() {
         .groupBy(Budgets.id);
 
       setBudgetList(result);
+
     } catch (error) {
       console.error("Error fetching budget list:", error);
     }
   };
 
+  const months = [
+    "January", "February", "March", "April", "May", "June", 
+    "July", "August", "September", "October", "November", "December"
+  ];
+
   return (
     <div className="mt-7">
-      {/* Filters for Year and Month */}
       <div className="flex space-x-4 mb-4">
-        {/* Year Selector */}
+
+        {/* Year filter */}
         <select
           className="border p-2 rounded-md"
           value={selectedYear}
           onChange={(e) => setSelectedYear(Number(e.target.value))}
         >
-          {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(
-            (year) => (
-              <option key={year} value={year}>
+          {[0,1,2,3,4,5].map((i)=>{
+            const year = new Date().getFullYear() - i
+            return(
+              <option key = {year} value={year}>
                 {year}
               </option>
-            )
-          )}
+            );
+          })}
         </select>
 
-        {/* Month Selector */}
+        {/* Month filter */}
         <select
           className="border p-2 rounded-md"
           value={selectedMonth}
           onChange={(e) => setSelectedMonth(Number(e.target.value))}
         >
-          {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+          {months.map((month,index)=>
+
             <option
-              key={month}
-              value={month}
-              disabled={
-                selectedYear === currentYear && month > currentMonth
-              } // Disable future months
+            key={index}
+            value={index + 1}
+            disabled={selectedYear === currentYear && index + 1 > currentMonth}
             >
-              {new Date(0, month - 1).toLocaleString("en", { month: "long" })}
+              {month}
             </option>
-          ))}
+          )}
         </select>
       </div>
 
       {/* Budget List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+
         {/* Show "Create New Budget" ONLY for the current month */}
         {selectedYear === currentYear && selectedMonth === currentMonth && (
           <CreateBudget refreshData={() => getBudgetList()} />
@@ -106,8 +115,7 @@ function BudgetList() {
         ) : (
           <div className="col-span-3 text-center text-gray-500 mt-4">
             Data not available for{" "}
-            {new Date(0, selectedMonth - 1).toLocaleString("en", {
-              month: "long",
+            {new Date(0, selectedMonth - 1).toLocaleString("en", {month: "long",
             })}
           </div>
         )}
