@@ -28,11 +28,12 @@ import { eq, getTableColumns, sql } from 'drizzle-orm'
 import React, { useEffect, useState } from 'react'
 import { db } from 'utils/dbConfig'
 import { Budgets, Goals, Incomes } from 'utils/schema'
+import { toast } from "sonner";
 
 
 
 
-function CreateGoals({ totalIncome, totalBudget, remainingAmount }) {
+function CreateGoals({ refreshData }) {
 
   console.log("GOALS PAGE")
   const { user } = useUser();
@@ -56,7 +57,7 @@ function CreateGoals({ totalIncome, totalBudget, remainingAmount }) {
         .values({
           name: name,
           amount: amount,
-          date: new Date(), // Ensure the date column is populated
+          date: new Date(), 
           completeBy: new Date(date + "T00:00:00Z"),
           priority: priority,
           icon: emojiIcon,
@@ -65,6 +66,11 @@ function CreateGoals({ totalIncome, totalBudget, remainingAmount }) {
 
       console.log(result);
       setCreateGoal(result);
+
+      if(result){
+        refreshData()
+        toast("New Goal Added !!")
+      }
     }
 
     catch (error) {

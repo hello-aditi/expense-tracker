@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { db } from 'utils/dbConfig'
 import { Budgets, Goals, Incomes } from 'utils/schema'
 import CreateGoals from './_components/CreateGoals'
+import GoalsItem from './_components/GoalsItem'
 
 
 function GoalsPage() {
@@ -16,12 +17,14 @@ function GoalsPage() {
 
   const [totalIncome, setTotalIncome] = useState([]);
   const [totalBudget, setTotalBudget] = useState([]);
- 
+  const [goalsList, setGoalsList] = useState([]);
+
 
   useEffect(() => {
     if (user) {
       getTotalBudget();
       getTotalIncome();
+      getGoalsList();
     }
   }, [user]);
 
@@ -77,9 +80,37 @@ function GoalsPage() {
     }
   };
 
+  const getGoalsList = async () => {
+    console.log("Fetching Goals Information");
+
+    try {
+      const result = await db
+        .select({
+          ...getTableColumns(Goals)
+        })
+        .from(Goals)
+        .where(
+          sql`${eq(Goals.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
+          EXTRACT (YEAR FROM ${Goals.date}) = ${currentYear} AND
+          EXTRACT (MONTH FROM ${Goals.date}) = ${currentMonth}
+        `
+        ).groupBy(Goals.id);
+
+      console.log("Fetching Goals Data", result);
+      setGoalsList(result);
+    }
+    catch (error) {
+      console.error(error);
+    }
+  }
+
+
   const remainingAmount = (totalIncome[0]?.totalIncome || 0) - (totalBudget[0]?.totalBudget || 0);
+  console.log("remainingAmount:", remainingAmount);
+
 
   return (
+
     <div>
       <div className='p-10'>
         <h1 className="font-bold text-3xl">My Goals</h1>
@@ -88,8 +119,24 @@ function GoalsPage() {
         <h2>{remainingAmount}</h2>
       </div>
 
-      <div>
-        <CreateGoals totalIncome= {totalIncome} totalBudget={totalBudget} remainingAmount={remainingAmount} />
+
+
+        {/* Show "Create New Budget" ONLY for the current month */}
+        {/* {selectedYear === currentYear && selectedMonth === currentMonth && ( */}
+        <CreateGoals refreshData={() => getGoalsList()} />
+        {/* )} */}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {/* Render Budget Items */}
+        {goalsList?.length > 0 ? (
+          goalsList.map((goalsList) => (
+            <GoalsItem key={goalsList.id} goalsList={goalsList} />
+          ))
+        ) : (
+          <div className="col-span-3 text-center text-gray-500 mt-4">
+            Data not available
+          </div>
+        )}
       </div>
     </div>
   )
