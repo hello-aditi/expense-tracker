@@ -1,15 +1,13 @@
-"use client"
-import { Button } from '@/components/ui/button'
-import React, { useState, useEffect } from 'react'
-import { db } from 'utils/dbConfig'
-import { Incomes } from 'utils/schema'
-import { and, eq, sql, desc } from 'drizzle-orm'
-
-import { useUser } from '@clerk/nextjs'
-import { Input } from '@/components/ui/input'
-import IncomeListTable from './IncomeListTable'
-import { toast } from 'sonner'
-
+"use client";
+import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { db } from 'utils/dbConfig';
+import { Incomes } from 'utils/schema';
+import { and, eq, sql, desc } from 'drizzle-orm';
+import { useUser } from '@clerk/nextjs';
+import { Input } from '@/components/ui/input';
+import IncomeListTable from './IncomeListTable';
+import { toast } from 'sonner';
 import {
     Dialog,
     DialogClose,
@@ -19,10 +17,9 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 function AddIncome() {
-
     const { user } = useUser();
     const [name, setName] = useState('');
     const [amount, setAmount] = useState('');
@@ -33,20 +30,18 @@ function AddIncome() {
     const currentMonth = new Date().getMonth() + 1;
 
     const [selectedYear, setSelectedYear] = useState(currentYear);
-    const [selectedMonth, setSelectedMonth] = useState(currentYear);
-
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
 
     const fetchTotalIncome = async () => {
         try {
-
             const result = await db
                 .select({ sum: sql`SUM(amount)`.mapWith(Number) })
                 .from(Incomes)
                 .where(
                     and(
                         eq(Incomes.createdBy, user?.primaryEmailAddress?.emailAddress),
-                        sql`EXTRACT(YEAR FROM "date") = ${currentYear}`,
-                        sql`EXTRACT(MONTH FROM "date") = ${currentMonth}`
+                        sql`EXTRACT(YEAR FROM "date") = ${selectedYear}`,
+                        sql`EXTRACT(MONTH FROM "date") = ${selectedMonth}`
                     )
                 );
 
@@ -61,7 +56,13 @@ function AddIncome() {
             const result = await db
                 .select()
                 .from(Incomes)
-                .where(eq(Incomes.createdBy, user?.primaryEmailAddress?.emailAddress))
+                .where(
+                    and(
+                        eq(Incomes.createdBy, user?.primaryEmailAddress?.emailAddress),
+                        sql`EXTRACT(YEAR FROM "date") = ${selectedYear}`,
+                        sql`EXTRACT(MONTH FROM "date") = ${selectedMonth}`
+                    )
+                )
                 .orderBy(desc(Incomes.date));
 
             setIncomeList(result);
@@ -75,7 +76,7 @@ function AddIncome() {
             fetchTotalIncome();
             getIncomeList();
         }
-    }, [user]);
+    }, [user, selectedYear, selectedMonth]); // Re-fetch when filters change
 
     const onCreateIncome = async () => {
         if (!name || !amount) return;
@@ -106,91 +107,108 @@ function AddIncome() {
         "July", "August", "September", "October", "November", "December"
     ];
 
+    const isMonthDisabled = (monthIndex) => {
+        if (selectedYear === currentYear) {
+            // Disable months greater than the current month for the current year
+            return monthIndex > currentMonth;
+        }
+        return false; // Enable all months for past years
+    };
+
     return (
-        <div className="relative p-5">
-            {/* Total Income Display - Styled & Animated */}
-            {/* <div className="absolute top-2 right-5 bg-[#86198f] text-white p-4 rounded-lg shadow-lg text-l font-bold">
-                Total Income: ₹{totalIncome}
-            </div> */}
-
-            {/* Add Income Button */}
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button className='top-2 right-5 shadow-lg text-l font-bold text-white'> + Add Income ----
-                        Total Income: ₹{totalIncome}
-                    </Button>
-                    {/* <div className="absolute top-2 right-5 bg-[#86198f] text-white p-4 rounded-lg shadow-lg text-l font-bold">
-                        Total Income: ₹{totalIncome}
-                    </div> */}
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Enter your Income</DialogTitle>
-                        <DialogDescription>Fill the details below to create income.</DialogDescription>
-                    </DialogHeader>
-
-                    <div className="mt-2">
-                        <h2 className="text-black font-medium my-1">Income Name</h2>
-                        <Input
-                            placeholder="e.g. Pocket Money"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="mt-1">
-                        <h2 className="text-black font-medium my-1">Enter Amount</h2>
-                        <Input
-                            type="number"
-                            placeholder="e.g. 3500"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                        />
-                    </div>
-
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button disabled={!(name && amount)} onClick={onCreateIncome} className="mt-5">
-                                Add Income
-                            </Button>
-                        </DialogClose>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+        <div className="p-10">
+            <div className='flex justify-between'>
+                <h1 className="font-bold text-3xl mb-2">My Incomes</h1>
+                <div className='bg-slate-100 p-5 rounded-md items-center border-2 border-dashed
+               hover:shadow-md text-right'>
+                    Total Income: ₹{totalIncome}
+                </div>
+            </div>
 
 
             {/* FILTERS  */}
-            <div>
+            <div className='flex justify-between'>
                 {/* Year filter  */}
-                <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(Number(e.target.value))}
-                >
-                    {[0, 1, 2, 3, 4, 5].map((i) => {
-                        const year = new Date().getFullYear() - i;
-                        return (
-                            <option key={year} value={year}>
-                                {year}
-                            </option>
-                        );
-                    })}
-                </select>
+                <div className='flex space-x-4 mb-4'>
+                    <select
+                        className='border p-2 rounded-md'
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(Number(e.target.value))}
+                    >
+                        {[0, 1, 2, 3, 4, 5].map((i) => {
+                            const year = new Date().getFullYear() - i;
+                            return (
+                                <option key={year} value={year}>
+                                    {year}
+                                </option>
+                            );
+                        })}
+                    </select>
 
-                {/* Month Filter  */}
-                <select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                >
-                    {months.map((month, index) =>
-                        <option
-                            value="index"
-                            key={index + 1}>
-                            {month}
-                        </option>
-                    )}
+                    {/* Month Filter  */}
+                    <select
+                        className='border p-2 rounded-md'
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                    >
+                        {months.map((month, index) => {
+                            const monthIndex = index + 1; // Months are 1-indexed
+                            return (
+                                <option
+                                    key={monthIndex}
+                                    value={monthIndex}
+                                    disabled={isMonthDisabled(monthIndex)} // Disable future months
+                                >
+                                    {month}
+                                </option>
+                            );
+                        })}
+                    </select>
+                </div>
 
-                </select>
+                <div className='mt-3'>
+                    <Dialog>
+                        <DialogTrigger>
+                            <Button className='top-2 right-5 shadow-lg text-lg font-bold text-white'>
+                                + Add Income
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Enter your Income</DialogTitle>
+                                <DialogDescription>Fill the details below to create income.</DialogDescription>
+                            </DialogHeader>
 
+                            <div className="mt-2">
+                                <h2 className="text-black font-medium my-1">Income Name</h2>
+                                <Input
+                                    placeholder="e.g. Pocket Money"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="mt-1">
+                                <h2 className="text-black font-medium my-1">Enter Amount</h2>
+                                <Input
+                                    type="number"
+                                    placeholder="e.g. 3500"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                />
+                            </div>
+
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button disabled={!(name && amount)} onClick={onCreateIncome} className="mt-5">
+                                        Add Income
+                                    </Button>
+                                </DialogClose>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                </div>
             </div>
 
             {/* Income List */}

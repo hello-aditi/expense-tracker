@@ -1,68 +1,76 @@
-"use client"
-import { useUser } from '@clerk/nextjs'
-import { eq, getTableColumns, sql } from 'drizzle-orm'
-import React, { useEffect, useState } from 'react'
-import { db } from 'utils/dbConfig'
-import { Budgets, Goals, Incomes } from 'utils/schema'
-import CreateGoals from './_components/CreateGoals'
-import GoalsItem from './_components/GoalsItem'
-
+"use client";
+import { useUser } from '@clerk/nextjs';
+import { eq, getTableColumns, sql } from 'drizzle-orm';
+import React, { useEffect, useState } from 'react';
+import { db } from 'utils/dbConfig';
+import { Budgets, Expenses, Goals, Incomes, Transactions } from 'utils/schema';
+import CreateGoals from './_components/CreateGoals';
+import GoalsItem from './_components/GoalsItem';
+import { toast } from 'sonner';
+// import React from 'react';
 
 function GoalsPage() {
-
-  console.log("GOALS PAGE")
+  console.log("GOALS PAGE");
   const { user } = useUser();
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
 
-  const [totalIncome, setTotalIncome] = useState([]);
+  const [totalIncome, setTotalIncome] = useState({ totalIncome: 0 });
   const [totalBudget, setTotalBudget] = useState([]);
   const [goalsList, setGoalsList] = useState([]);
+  const [remainingAmount, setRemainingAmount] = useState(0);
+  const [totalTransactions, setTotalTransactions] = useState({ totalAmountAdded: 0 });
+  const [totalExpenses, setTotalExpenses] = useState({ addedTotalExpenses: 0 });
 
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+
+  const [selectedPriority, setSelectedPriority] = useState("All"); // Priority filter
+  const [selectedStatus, setSelectedStatus] = useState("All"); // Status filter
 
   useEffect(() => {
     if (user) {
       getTotalBudget();
       getTotalIncome();
       getGoalsList();
+      getTotalTransactions();
+      getTotalExpenses();
     }
-  }, [user]);
-
+  }, [user, selectedYear, selectedMonth, selectedPriority, selectedStatus]);
 
   const getTotalIncome = async () => {
     try {
-      console.log("Fetching Total Income")
+      console.log("Fetching Total Income");
 
       const result = await db
         .select({
-          totalIncome: sql`SUM(${Incomes.amount}::NUMERIC)`.mapWith(Number)
+          totalIncome: sql`SUM(${Incomes.amount}::NUMERIC)`.mapWith(Number),
         })
         .from(Incomes)
         .where(
           sql`${eq(Incomes.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
         EXTRACT (YEAR FROM ${Incomes.date}) = ${currentYear} AND
-        EXTRACT (MONTH FROM ${Incomes.date}) = ${currentMonth}
+        EXTRACT (MONTH FROM ${Incomes.date}) = ${currentMonth} AND
         `
-        ).groupBy(Incomes.createdBy);
+        )
+        .groupBy(Incomes.createdBy);
 
       console.log("Total Income ", result);
-      setTotalIncome(result);
-    }
-    catch (error) {
+      setTotalIncome(result[0] || { totalIncome: 0 });
+      // updateRemainingAmount(result[0]?.totalIncome || 0, totalBudget[0]?.totalBudget || 0);
+    } catch (error) {
       console.log(error);
     }
-  }
+  };
 
   const getTotalBudget = async () => {
-
-    console.log("Start")
+    console.log("Start");
     try {
-      console.log("Fetching Total Budget Allocation")
+      console.log("Fetching Total Budget Allocation");
 
       const result = await db
         .select({
-
-          totalBudget: sql`SUM(${Budgets.amount}::NUMERIC)`.mapWith(Number)
+          totalBudget: sql`SUM(${Budgets.amount}::NUMERIC)`.mapWith(Number),
         })
         .from(Budgets)
         .where(
@@ -70,13 +78,14 @@ function GoalsPage() {
         EXTRACT (YEAR FROM ${Budgets.date}) = ${currentYear} AND
         EXTRACT (MONTH FROM ${Budgets.date}) = ${currentMonth}
         `
-        ).groupBy(Budgets.createdBy);
+        )
+        .groupBy(Budgets.createdBy);
 
       console.log("Total Budget Allocation : ", result);
       setTotalBudget(result);
-    }
-    catch (error) {
-      console.error("Cant fetch  total budget ", error);
+      // updateRemainingAmount(totalIncome[0]?.totalIncome || 0, result[0]?.totalBudget || 0);
+    } catch (error) {
+      console.error("Cant fetch total budget ", error);
     }
   };
 
@@ -86,51 +95,188 @@ function GoalsPage() {
     try {
       const result = await db
         .select({
-          ...getTableColumns(Goals)
+          ...getTableColumns(Goals),
         })
         .from(Goals)
         .where(
           sql`${eq(Goals.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
           EXTRACT (YEAR FROM ${Goals.date}) = ${currentYear} AND
-          EXTRACT (MONTH FROM ${Goals.date}) = ${currentMonth}
+          EXTRACT (MONTH FROM ${Goals.date}) = ${currentMonth} AND
+          (${selectedPriority} = 'All' OR ${Goals.priority} = ${selectedPriority}) AND
+          (${selectedStatus} = 'All' OR ${Goals.status} = ${selectedStatus})
         `
-        ).groupBy(Goals.id);
+        )
+        .groupBy(Goals.id);
 
       console.log("Fetching Goals Data", result);
       setGoalsList(result);
-    }
-    catch (error) {
+    } catch (error) {
       console.error(error);
     }
-  }
+  };
 
+  const getTotalTransactions = async () => {
+    console.log("Start");
+    try {
+      console.log("Fetching Total Budget Allocation");
 
-  const remainingAmount = (totalIncome[0]?.totalIncome || 0) - (totalBudget[0]?.totalBudget || 0);
-  console.log("remainingAmount:", remainingAmount);
+      const result = await db
+        .select({
+          totalAmountAdded: sql`SUM(${Transactions.amountAdded}::NUMERIC)`.mapWith(Number),
+        })
+        .from(Transactions)
+        .where(
+          sql`${eq(Transactions.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
+        EXTRACT (YEAR FROM ${Transactions.date}) = ${currentYear} AND
+        EXTRACT (MONTH FROM ${Transactions.date}) = ${currentMonth}
+        `
+        )
+        .groupBy(Transactions.createdBy);
+
+      console.log("Total Transactions : ", result);
+      setTotalTransactions(result[0] || { totalAmountAdded: 0 });
+      // updateRemainingAmount(totalIncome[0]?.totalIncome || 0, result[0]?.totalBudget || 0);
+    } catch (error) {
+      console.error("Cant fetch total Transactions ", error);
+    }
+  };
+
+  const getTotalExpenses = async () => {
+    console.log("Start Fetching Expenses");
+    try {
+      console.log("Fetching Total Expenses ");
+
+      const result = await db
+        .select({
+          addedTotalExpenses: sql`SUM(${Expenses.amount}::NUMERIC)`.mapWith(Number),
+        })
+        .from(Expenses)
+        .where(
+          sql`${eq(Expenses.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
+        EXTRACT (YEAR FROM ${Expenses.date}) = ${currentYear} AND
+        EXTRACT (MONTH FROM ${Expenses.date}) = ${currentMonth}
+        `
+        )
+        .groupBy(Expenses.createdBy);
+
+      console.log("Total Expenses : ", result);
+      setTotalExpenses(result[0] || { addedTotalExpenses: 0 });
+      // updateRemainingAmount(totalIncome[0]?.totalIncome || 0, result[0]?.totalBudget || 0);
+    } catch (error) {
+      console.error("Cant fetch total Expenses ", error);
+    }
+  };
+
+  const filteredGoalsList = goalsList.filter((goal) => {
+    const matchesPriority =
+      selectedPriority === "All" || goal.priority === selectedPriority;
+    const matchesStatus =
+      selectedStatus === "All" || goal.status === selectedStatus;
+    return matchesPriority && matchesStatus;
+  });
+
+  const RemainingAmount =
+    (totalIncome?.totalIncome || 0) -
+    (totalExpenses?.addedTotalExpenses || 0) -
+    (totalTransactions?.totalAmountAdded || 0);
+
+  
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+  ];
+
+  const isMonthDisabled = (monthIndex) => {
+      if (selectedYear === currentYear) {
+          // Disable months greater than the current month for the current year
+          return monthIndex > currentMonth;
+      }
+      return false; // Enable all months for past years
+  };
+
 
 
   return (
-
-    <div>
-      <div className='p-10'>
+    <div className='p-10'>
+      <div className='flex justify-between'>
         <h1 className="font-bold text-3xl">My Goals</h1>
-      </div>
-      <div>
-        <h2>{remainingAmount}</h2>
+        <div className='bg-slate-100 p-5 rounded-md items-center border-2 border-dashed
+               hover:shadow-md text-right'>
+          <h2>Remaining Amount: ₹{RemainingAmount}</h2>
+        </div>
       </div>
 
+      <div className='flex justify-between'>
+        <div className='flex space-x-4 mb-4'>
+          <select
+            className='border p-2 rounded-md'
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+          >
+            {[0, 1, 2, 3, 4, 5].map((i) => {
+              const year = new Date().getFullYear() - i;
+              return (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              );
+            })}
+          </select>
 
+          {/* Month Filter  */}
+          <select
+            className='border p-2 rounded-md'
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+          >
+            {months.map((month, index) => {
+              const monthIndex = index + 1; // Months are 1-indexed
+              return (
+                <option
+                  key={monthIndex}
+                  value={monthIndex}
+                  disabled={isMonthDisabled(monthIndex)} // Disable future months
+                >
+                  {month}
+                </option>
+              );
+            })}
+          </select>
+
+          <select
+            className="border p-2 rounded-md"
+            value={selectedPriority}
+            onChange={(e) => setSelectedPriority(e.target.value)}
+          >
+            <option value="All">All Priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+
+          {/* Status Filter */}
+          <select
+            className="border p-2 rounded-md"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+          >
+            <option value="All">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Achieved">Achieved</option>
+            <option value="Pending">Pending</option>
+          </select>
+        </div>
 
         {/* Show "Create New Budget" ONLY for the current month */}
-        {/* {selectedYear === currentYear && selectedMonth === currentMonth && ( */}
         <CreateGoals refreshData={() => getGoalsList()} />
-        {/* )} */}
+
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {/* Render Budget Items */}
-        {goalsList?.length > 0 ? (
-          goalsList.map((goalsList) => (
-            <GoalsItem key={goalsList.id} goalsList={goalsList} />
+        {filteredGoalsList?.length > 0 ? (
+          filteredGoalsList.map((goal) => (
+            <GoalsItem key={goal.id} goalsList={goal} />
           ))
         ) : (
           <div className="col-span-3 text-center text-gray-500 mt-4">
@@ -139,7 +285,7 @@ function GoalsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export default GoalsPage;

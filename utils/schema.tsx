@@ -1,4 +1,7 @@
-import { serial, pgTable, varchar, integer, timestamp } from "drizzle-orm/pg-core"; 
+import { serial, pgTable, varchar, integer, timestamp, pgEnum } from "drizzle-orm/pg-core"; 
+
+const priorityEnum = pgEnum('priority', ['High', 'Medium', 'Low']);
+const statusEnum = pgEnum('status', ['Active', 'Achieved', 'Pending']);
 
 export const Budgets = pgTable('Budgets',{
     id: serial('id').primaryKey(), 
@@ -37,10 +40,12 @@ export const Goals = pgTable('Goals', {
     priority: varchar('priority').notNull(),
 });
 
-export const Transactions = pgTable('Transactions',{
-    id:serial('id').primaryKey(),
-    amountAdded:integer('amountAdded').notNull(),
+export const Transactions = pgTable('Transactions', {
+    id: serial('id').primaryKey(),
+    amountAdded: integer('amountAdded').notNull(),
     date: timestamp('date', { withTimezone: true }).notNull().defaultNow(),
-    goalId:integer('goalId').references(()=>Goals.id),
+    goalId: integer('goalId').notNull().references(() => Goals.id, { onDelete: 'cascade' }),
     createdBy: varchar('createdBy').notNull(),
+    priority: priorityEnum('priority').notNull(), // Use enum for priority
+    status: statusEnum('status').notNull()
 });
