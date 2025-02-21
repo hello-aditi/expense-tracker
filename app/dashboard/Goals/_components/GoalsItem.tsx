@@ -19,9 +19,9 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash } from "lucide-react";
+import { PartyPopper, Trash } from "lucide-react";
 
-function GoalsItem({ goalsList }) {
+function GoalsItem({ refreshData, goalsList, remainingAmount }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const { user } = useUser();
     const completeByDate = new Date(goalsList.completeBy).toLocaleDateString();
@@ -59,15 +59,19 @@ function GoalsItem({ goalsList }) {
         }
     };
 
-    const remainingAmount = goalsList.amount - totalAdded;
+    const remainingAmount_ = goalsList.amount - totalAdded;
 
     const addNewTransaction = async (e) => {
-        e.stopPropagation();
+        e.preventDefault();
 
-        if (newAmount <= 0 || newAmount > remainingAmount) {
-            toast(`You can add only up to ₹${remainingAmount}`);
+        if (newAmount > remainingAmount) {
+            toast.error("The amount you are trying to add exceeds the remaining amount.");
             return;
-        }
+          }
+          if (newAmount > remainingAmount_) {
+            toast.error("The amount you are trying to add exceeds the Goal Limit.");
+            return;
+          }
 
         setIsLoading(true);
         try {
@@ -93,6 +97,7 @@ function GoalsItem({ goalsList }) {
                 setIsGoalAchieved(true);
                 toast.success("Congratulations! You've achieved your goal! 🎉");
             } else {
+                refreshData();
                 toast("Amount Added!");
             }
         } catch (error) {
@@ -103,24 +108,33 @@ function GoalsItem({ goalsList }) {
         }
     };
 
-    const deleteGoal = async () => {
-        const deleteGoalResult = await db
+    const deleteGoal = async (goalId) => {
+        try {
+          // Step 1: Delete all transactions associated with the goal
+          const deleteTransactionsResult = await db
             .delete(Transactions)
-            .where(eq(Transactions.id, Transactions.goalId))
+            .where(eq(Transactions.goalId, goalId)) // Correct column reference
             .returning();
+      
+          console.log("Deleted Transactions:", deleteTransactionsResult);
+      
+          // Step 2: Delete the goal
+          if (deleteTransactionsResult) {
+            const deleteGoalResult = await db
+              .delete(Goals)
+              .where(eq(Goals.id, goalId)) // Correct column reference
+              .returning();
+      
+            console.log("Deleted Goal:", deleteGoalResult);
+          }
 
-        if (deleteGoalResult) {
-            const result = await db
-                .delete(Goals)
-                .where(eq(Goals.id, Transactions.goalId))
-                .returning();
-
-            console.log("Deleted Budget ", result);
+          toast("Goal and associated transactions deleted!");
+          refreshData();
+        } catch (error) {
+          console.error("Error deleting goal:", error);
+          toast("Failed to delete goal.");
         }
-
-        toast("Goal Deleted !");
-        // route.replace('/dashboard/budgets');
-    };
+      };
 
     return (
         <div>
@@ -138,9 +152,9 @@ function GoalsItem({ goalsList }) {
                         <div>
                             <div className="flex justify-between items-center">
                                 <Badge
-                                    className={`text-white px-3 py-1 rounded-md text-xs text-right ${goalsList.priority === "high"
+                                    className={`text-white px-3 py-1 rounded-md text-xs text-right ${goalsList.priority === "High"
                                         ? "bg-red-500"
-                                        : goalsList.priority === "medium"
+                                        : goalsList.priority === "Medium"
                                             ? "bg-yellow-500"
                                             : "bg-green-500"
                                         }`}
@@ -150,7 +164,7 @@ function GoalsItem({ goalsList }) {
                                 <div className="text-right">
                                     <AlertDialog>
                                         <AlertDialogTrigger>
-                                            <Trash className="xs" />
+                                            <Trash className="text-red-600 cursor-pointer hover:scale-110 transition-transform" />
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
@@ -164,7 +178,12 @@ function GoalsItem({ goalsList }) {
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => deleteGoal()}>
+                                                <AlertDialogAction 
+                                                    
+                                                    onClick={() => {
+                                                    deleteGoal(goalsList.id);
+                                                    refreshData();
+                                                }}>
                                                     Continue
                                                 </AlertDialogAction>
                                             </AlertDialogFooter>
@@ -218,7 +237,7 @@ function GoalsItem({ goalsList }) {
                                     width: `${(totalAdded / goalsList.amount) * 100}%`,
                                 }}
                             ></div>
-                            <div className="flex items-center justify-between mb-5">
+                            <div className="flex items-center justify-between mb-5 mt-2">
                                 <h2 className="text-xs text-slate-500">₹{totalAdded} Added </h2>
                                 <h2 className="text-xs text-slate-500">
                                     ₹{goalsList.amount - totalAdded} Remains
@@ -231,9 +250,9 @@ function GoalsItem({ goalsList }) {
                             <Button
                                 variant="outline"
                                 className="w-full"
-                                disabled={remainingAmount <= 0 || isGoalAchieved}
+                                // disabled={remainingAmount <= 0 || isGoalAchieved}
                             >
-                                {isGoalAchieved ? "Goal Achieved 🎉" : "Add Money"}
+                                {isGoalAchieved ? ` Goal Achieved 🎉` : "Add Money"}
                             </Button>
                             <p className="text-xs text-gray-500 mt-2 text-center">
                                 🎯 Complete by: {completeByDate}
@@ -274,14 +293,17 @@ function GoalsItem({ goalsList }) {
                                 disabled={isGoalAchieved} // Disable input if goal is achieved
                             />
                             <Button
-                                onClick={(e) => addNewTransaction(e)}
+                                onClick={async (e) => {
+                                    await addNewTransaction(e);
+                                    refreshData();
+                                }}
                                 className="w-full mt-2"
-                                disabled={
-                                    newAmount <= 0 ||
-                                    newAmount > remainingAmount ||
-                                    isLoading ||
-                                    isGoalAchieved
-                                }
+                                // disabled={
+                                //     newAmount <= 0 ||
+                                //     newAmount > remainingAmount ||
+                                //     isLoading ||
+                                //     isGoalAchieved
+                                // }
                             >
                                 {isLoading ? "Adding..." : "Add Money"}
                             </Button>

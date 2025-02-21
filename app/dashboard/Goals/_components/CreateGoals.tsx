@@ -1,4 +1,5 @@
 "use client"
+import React, { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogClose,
@@ -25,7 +26,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from '@/components/ui/button'
 import { useUser } from '@clerk/nextjs'
 import { eq, getTableColumns, sql } from 'drizzle-orm'
-import React, { useEffect, useState } from 'react'
 import { db } from 'utils/dbConfig'
 import { Budgets, Goals, Incomes } from 'utils/schema'
 import { toast } from "sonner";
@@ -57,7 +57,7 @@ function CreateGoals({ refreshData }) {
         .values({
           name: name,
           amount: amount,
-          date: new Date(), 
+          date: new Date(),
           completeBy: new Date(date + "T00:00:00Z"),
           priority: priority,
           icon: emojiIcon,
@@ -67,7 +67,7 @@ function CreateGoals({ refreshData }) {
       console.log(result);
       setCreateGoal(result);
 
-      if(result){
+      if (result) {
         refreshData()
         toast("New Goal Added !!")
         setName(" ")
@@ -82,7 +82,7 @@ function CreateGoals({ refreshData }) {
     }
   }
 
-  
+
 
   return (
     <div>
@@ -135,7 +135,7 @@ function CreateGoals({ refreshData }) {
                   type="number"
                   placeholder="e.g. 10,000"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value) }  
+                  onChange={(e) => setAmount(e.target.value)}
                 />
               </div>
 
@@ -154,9 +154,9 @@ function CreateGoals({ refreshData }) {
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="Low">Low</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

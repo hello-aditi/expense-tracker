@@ -115,6 +115,8 @@ function AddIncome() {
         return false; // Enable all months for past years
     };
 
+
+
     return (
         <div className="p-10">
             <div className='flex justify-between'>
@@ -169,7 +171,8 @@ function AddIncome() {
                 <div className='mt-3'>
                     <Dialog>
                         <DialogTrigger>
-                            <Button className='top-2 right-5 shadow-lg text-lg font-bold text-white'>
+                            <Button className='top-2 right-5 shadow-lg text-lg font-bold text-white'
+                            >
                                 + Add Income
                             </Button>
                         </DialogTrigger>

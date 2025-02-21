@@ -128,8 +128,9 @@ export default function DashboardPage() {
       const result = await db
         .select({
           ...getTableColumns(Budgets),
+          totalBudget: sql`SUM(${Budgets.amount}::NUMERIC)`.mapWith(Number),
           totalSpend: sql`COALESCE(SUM(${Expenses.amount}::NUMERIC), 0)`.mapWith(Number),
-          totalItem: sql`COALESCE(COUNT(${Expenses.id}), 0)`.mapWith(Number),
+          totalItem: sql`COALESCE(COUNT(${Expenses.id}), 0)`.mapWith(Number)
         })
         .from(Budgets)
         .leftJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
@@ -160,9 +161,9 @@ export default function DashboardPage() {
         .from(Incomes)
         .where(
           sql`
-          EXTRACT(MONTH FROM ${Incomes.date}::DATE) = ${month}
-          AND EXTRACT(YEAR FROM ${Incomes.date}::DATE) = ${year}
-          AND ${Incomes.createdBy} = ${user?.primaryEmailAddress?.emailAddress}
+          EXTRACT(MONTH FROM ${Incomes.date}::DATE) = ${month} AND
+          EXTRACT(YEAR FROM ${Incomes.date}::DATE) = ${year} AND
+          ${Incomes.createdBy} = ${user?.primaryEmailAddress?.emailAddress}
         `
         )
 

@@ -1,3 +1,4 @@
+"use client"
 import { PiggyBank, ReceiptText, Wallet } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
@@ -7,39 +8,85 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { sql, eq } from "drizzle-orm";
+
+import { db } from "utils/dbConfig";
+import { Expenses, Transactions } from "utils/schema";
+import { useUser } from "@clerk/nextjs";
+
 
 
 function CardsInfo({ budgetList, incomeList }) {
+
+  const {user} = useUser();
   const [totalBudget, setTotalBudget] = useState(0);
   const [totalSpend, setTotalSpend] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpenses, setTotalExpenses] = useState({ addedTotalExpenses: 0 });
+  const [totalTransactions, setTotalTransactions] = useState({ totalAmountAdded: 0 });
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
 
-  useEffect(() => {
-    if (budgetList && budgetList.length > 0) {
-      calculateCardInfo();
+    const getTotalTransactions = async () => {
+    console.log("Start");
+    try {
+      console.log("Fetching Total Budget Allocation");
+
+      const result = await db
+        .select({
+          totalAmountAdded: sql`SUM(${Transactions.amountAdded}::NUMERIC)`.mapWith(Number),
+        })
+        .from(Transactions)
+        .where(
+          sql`${eq(Transactions.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
+        EXTRACT (YEAR FROM ${Transactions.date}) = ${currentYear} AND
+        EXTRACT (MONTH FROM ${Transactions.date}) = ${currentMonth}
+        `
+        )
+        .groupBy(Transactions.createdBy);
+
+      console.log("Total Transactions : ", result);
+      setTotalTransactions(result[0] || { totalAmountAdded: 0 });
+      // updateRemainingAmount(totalIncome[0]?.totalIncome || 0, result[0]?.totalBudget || 0);
+    } catch (error) {
+      console.error("Cant fetch total Transactions ", error);
     }
-    if (incomeList && incomeList.length > 0) {
-      calculateIncome();
-    }
-  }, [budgetList, incomeList]);
-
-  const calculateCardInfo = () => {
-    let totalBudget_ = 0;
-    let totalSpend_ = 0;
-
-    budgetList.forEach((element) => {
-      totalBudget_ += Number(element.amount);
-      totalSpend_ += element.totalSpend;
-    });
-
-    setTotalBudget(totalBudget_);
-    setTotalSpend(totalSpend_);
   };
 
-  const calculateIncome = () => {
-    let totalIncome_ = incomeList.reduce((sum, income) => sum + Number(income.totalIncome || 0), 0);
-    setTotalIncome(totalIncome_);
+    const getTotalExpenses = async () => {
+    console.log("Start Fetching Expenses");
+    try {
+      console.log("Fetching Total Expenses ");
+
+      const result = await db
+        .select({
+          addedTotalExpenses: sql`SUM(${Expenses.amount}::NUMERIC)`.mapWith(Number),
+        })
+        .from(Expenses)
+        .where(
+          sql`${eq(Expenses.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
+        EXTRACT (YEAR FROM ${Expenses.date}) = ${currentYear} AND
+        EXTRACT (MONTH FROM ${Expenses.date}) = ${currentMonth}
+        `
+        )
+        .groupBy(Expenses.createdBy);
+
+      console.log("Total Expenses : ", result);
+      setTotalExpenses(result[0] || { addedTotalExpenses: 0 });
+      // updateRemainingAmount(totalIncome[0]?.totalIncome || 0, result[0]?.totalBudget || 0);
+    } catch (error) {
+      console.error("Cant fetch total Expenses ", error);
+    }
   };
+
+  useEffect (()=>{
+    getTotalExpenses();
+    getTotalTransactions();
+  },[user])
+
+  const totalUtilization = totalExpenses?.addedTotalExpenses + totalTransactions?.totalAmountAdded
+
+  const remainingAmount = incomeList?.totalIncome - totalUtilization
 
 
   // ✅ Utilization percentage calculation
@@ -58,7 +105,7 @@ function CardsInfo({ budgetList, incomeList }) {
                 <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
                   <div>
                     <h2 className="text-sm">Total Income</h2>
-                    <h2 className="font-bold text-2xl">{totalIncome}</h2>
+                    <h2 className="font-bold text-2xl">{incomeList?.totalIncome}</h2>
                   </div>
                   <PiggyBank className="p-3 h-12 w-12 bg-green-400 rounded-full" />
                 </div>
@@ -76,7 +123,7 @@ function CardsInfo({ budgetList, incomeList }) {
                 <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
                   <div>
                     <h2 className="text-sm">Budget Allotted</h2>
-                    <h2 className="font-bold text-2xl">{totalBudget}</h2>
+                    <h2 className="font-bold text-2xl">{budgetList?.totalBudget}</h2>
                   </div>
                   <Wallet className="p-3 h-12 w-12 bg-purple-400 rounded-full" />
                 </div>
@@ -92,8 +139,8 @@ function CardsInfo({ budgetList, incomeList }) {
               <TooltipTrigger>
                 <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
                   <div>
-                    <h2 className="text-sm">Amount Spent</h2>
-                    <h2 className="font-bold text-2xl">{totalSpend}</h2>
+                    <h2 className="text-sm">Amount Utilized</h2>
+                    <h2 className="font-bold text-2xl">{totalUtilization}</h2>
                   </div>
                   <ReceiptText className="p-3 h-12 w-12 bg-red-400 rounded-full" />
                 </div>
@@ -111,7 +158,24 @@ function CardsInfo({ budgetList, incomeList }) {
                 <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
                   <div>
                     <h2 className="text-sm">Remaining Balance</h2>
-                    <h2 className="font-bold text-2xl">{totalIncome - totalSpend}</h2>
+                    <h2 className="font-bold text-2xl">{remainingAmount}</h2>
+                  </div>
+                  <Wallet className="p-3 h-12 w-12 bg-blue-400 rounded-full" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <h2 className="text-sm">Unspent income after expenses incurred</h2>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="p-7 border flex justify-between items-center shadow-md rounded-xl">
+                  <div>
+                    <h2 className="text-sm">Goals Amount</h2>
+                    <h2 className="font-bold text-2xl">{totalTransactions.totalAmountAdded}</h2>
                   </div>
                   <Wallet className="p-3 h-12 w-12 bg-blue-400 rounded-full" />
                 </div>

@@ -1,7 +1,7 @@
 import { serial, pgTable, varchar, integer, timestamp, pgEnum } from "drizzle-orm/pg-core"; 
 
 const priorityEnum = pgEnum('priority', ['High', 'Medium', 'Low']);
-const statusEnum = pgEnum('status', ['Active', 'Achieved', 'Pending']);
+// const statusEnum = pgEnum('status', ['Active', 'Achieved', 'Pending']);
 
 export const Budgets = pgTable('Budgets',{
     id: serial('id').primaryKey(), 
@@ -37,7 +37,7 @@ export const Goals = pgTable('Goals', {
     completeBy: timestamp('completeBy', { withTimezone: true }).notNull(),
     createdBy: varchar('createdBy').notNull(),
     icon: varchar('icon').notNull(),
-    priority: varchar('priority').notNull(),
+    priority: priorityEnum('priority').notNull(),
 });
 
 export const Transactions = pgTable('Transactions', {
@@ -46,6 +46,5 @@ export const Transactions = pgTable('Transactions', {
     date: timestamp('date', { withTimezone: true }).notNull().defaultNow(),
     goalId: integer('goalId').notNull().references(() => Goals.id, { onDelete: 'cascade' }),
     createdBy: varchar('createdBy').notNull(),
-    priority: priorityEnum('priority').notNull(), // Use enum for priority
-    status: statusEnum('status').notNull()
+
 });

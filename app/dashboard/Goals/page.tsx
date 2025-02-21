@@ -16,7 +16,7 @@ function GoalsPage() {
   const currentMonth = new Date().getMonth() + 1;
 
   const [totalIncome, setTotalIncome] = useState({ totalIncome: 0 });
-  const [totalBudget, setTotalBudget] = useState([]);
+  const [totalBudget, setTotalBudget] = useState({ totalBudget: 0 });
   const [goalsList, setGoalsList] = useState([]);
   const [remainingAmount, setRemainingAmount] = useState(0);
   const [totalTransactions, setTotalTransactions] = useState({ totalAmountAdded: 0 });
@@ -38,6 +38,15 @@ function GoalsPage() {
     }
   }, [user, selectedYear, selectedMonth, selectedPriority, selectedStatus]);
 
+  useEffect(() => {
+    const remainingAmount_ =
+      (totalIncome?.totalIncome || 0) -
+      (totalExpenses?.addedTotalExpenses || 0) -
+      (totalTransactions?.totalAmountAdded || 0);
+
+    setRemainingAmount(remainingAmount_);
+  }, [totalIncome.totalIncome, totalExpenses.addedTotalExpenses, totalTransactions.totalAmountAdded])
+
   const getTotalIncome = async () => {
     try {
       console.log("Fetching Total Income");
@@ -50,12 +59,13 @@ function GoalsPage() {
         .where(
           sql`${eq(Incomes.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
         EXTRACT (YEAR FROM ${Incomes.date}) = ${currentYear} AND
-        EXTRACT (MONTH FROM ${Incomes.date}) = ${currentMonth} AND
+        EXTRACT (MONTH FROM ${Incomes.date}) = ${currentMonth}
         `
         )
         .groupBy(Incomes.createdBy);
 
       console.log("Total Income ", result);
+
       setTotalIncome(result[0] || { totalIncome: 0 });
       // updateRemainingAmount(result[0]?.totalIncome || 0, totalBudget[0]?.totalBudget || 0);
     } catch (error) {
@@ -82,7 +92,7 @@ function GoalsPage() {
         .groupBy(Budgets.createdBy);
 
       console.log("Total Budget Allocation : ", result);
-      setTotalBudget(result);
+      setTotalBudget(result[0] || { totalBudget: 0 });
       // updateRemainingAmount(totalIncome[0]?.totalIncome || 0, result[0]?.totalBudget || 0);
     } catch (error) {
       console.error("Cant fetch total budget ", error);
@@ -102,8 +112,7 @@ function GoalsPage() {
           sql`${eq(Goals.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
           EXTRACT (YEAR FROM ${Goals.date}) = ${currentYear} AND
           EXTRACT (MONTH FROM ${Goals.date}) = ${currentMonth} AND
-          (${selectedPriority} = 'All' OR ${Goals.priority} = ${selectedPriority}) AND
-          (${selectedStatus} = 'All' OR ${Goals.status} = ${selectedStatus})
+          (${selectedPriority} = 'All' OR ${Goals.priority} = ${selectedPriority})
         `
         )
         .groupBy(Goals.id);
@@ -167,31 +176,48 @@ function GoalsPage() {
     }
   };
 
-  const filteredGoalsList = goalsList.filter((goal) => {
+
+
+  const calculateStatus = (goal) => {
+    const currentDate = new Date();
+    const completeByStatus = new Date(goal.completeBy);
+
+    if (currentDate > completeByStatus) {
+      return 'Expired';
+    }
+    if (totalTransactions.totalAmountAdded >= goal.amount) {
+      return "Achieved";
+    }
+    return "Active";
+  };
+
+  const goalListStatus = goalsList.map((goal) => ({
+    ...goal,
+    status: calculateStatus(goal)
+  }));
+
+
+  const filteredGoalsList = goalListStatus.filter((goal) => {
     const matchesPriority =
       selectedPriority === "All" || goal.priority === selectedPriority;
+
     const matchesStatus =
       selectedStatus === "All" || goal.status === selectedStatus;
+
     return matchesPriority && matchesStatus;
   });
 
-  const RemainingAmount =
-    (totalIncome?.totalIncome || 0) -
-    (totalExpenses?.addedTotalExpenses || 0) -
-    (totalTransactions?.totalAmountAdded || 0);
-
-  
-    const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
   ];
 
   const isMonthDisabled = (monthIndex) => {
-      if (selectedYear === currentYear) {
-          // Disable months greater than the current month for the current year
-          return monthIndex > currentMonth;
-      }
-      return false; // Enable all months for past years
+    if (selectedYear === currentYear) {
+      // Disable months greater than the current month for the current year
+      return monthIndex > currentMonth;
+    }
+    return false; // Enable all months for past years
   };
 
 
@@ -202,8 +228,17 @@ function GoalsPage() {
         <h1 className="font-bold text-3xl">My Goals</h1>
         <div className='bg-slate-100 p-5 rounded-md items-center border-2 border-dashed
                hover:shadow-md text-right'>
-          <h2>Remaining Amount: ₹{RemainingAmount}</h2>
+          <h2>Remaining Amount: ₹{remainingAmount}</h2>
         </div>
+        {/* <button onClick={() => {
+          getTotalIncome();
+          getTotalBudget();
+          getGoalsList();
+          getTotalTransactions();
+          getTotalExpenses();
+        }}>
+          Refresh Data
+        </button> */}
       </div>
 
       <div className='flex justify-between'>
@@ -263,7 +298,7 @@ function GoalsPage() {
             <option value="All">All Statuses</option>
             <option value="Active">Active</option>
             <option value="Achieved">Achieved</option>
-            <option value="Pending">Pending</option>
+            <option value="Expired">Expired</option>
           </select>
         </div>
 
@@ -276,7 +311,22 @@ function GoalsPage() {
         {/* Render Budget Items */}
         {filteredGoalsList?.length > 0 ? (
           filteredGoalsList.map((goal) => (
-            <GoalsItem key={goal.id} goalsList={goal} />
+            <GoalsItem
+              refreshData={() => {
+                getTotalIncome();
+                getTotalBudget();
+                getTotalTransactions();
+                getTotalExpenses();
+                getGoalsList()
+              }}
+              key={goal.id}
+              goalsList={goal}
+              // totalIncome ={totalIncome}
+              // totalExpenses ={totalExpenses}
+              // totalTransactions ={totalTransactions}
+              remainingAmount ={remainingAmount}
+              
+              />
           ))
         ) : (
           <div className="col-span-3 text-center text-gray-500 mt-4">
