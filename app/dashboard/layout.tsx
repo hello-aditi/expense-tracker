@@ -7,6 +7,7 @@ import BudgetsPage from "./Budgets/Budgetspage";
 import ExpensePage from "./Expenses/[id]/page";
 import MyGoalsPage from "./Goals/page";
 import IncomePage from "./Incomes/page";
+import { useState } from "react";
 
 function DashboardLayout() {
   const pathname = usePathname();
@@ -14,6 +15,8 @@ function DashboardLayout() {
 
   console.log("Current pathname:", pathname); 
   console.log("useParams Output (layout.tsx):", params); 
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const id = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : null;
 
@@ -47,8 +50,14 @@ function DashboardLayout() {
   
   return (
     <div className="flex">
-      <SideNav setPageName={undefined} />
-      <div className="flex-1 p-5">{pageContent}</div>
+      <SideNav setPageName={undefined} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <div 
+      className={`flex-1 p-5 ml-[200px] transition-all
+      ${isCollapsed ? "ml-[80px]" : "ml-[200px]"}
+      `}>
+        
+        {pageContent}
+      </div>
     </div>
   );
 }

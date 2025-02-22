@@ -10,11 +10,14 @@ import BarChartDashboard from "./_components/BarChartDashboard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
+
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
   const [budgetList, setBudgetList] = useState([]);
   const [incomeList, setIncomeList] = useState([]);
+
+
 
   useEffect(() => {
     if (user && user.primaryEmailAddress?.emailAddress) {
@@ -153,34 +156,37 @@ export default function DashboardPage() {
   const getIncomeList = async (month = getCurrentMonth(), year = getCurrentYear()) => {
     try {
       console.log("Fetching income for the month and year : ", month, year);
-
+  
       const result = await db
         .select({
-          totalIncome: sql`SUM(amount)`.as("totalIncome")
+          ...getTableColumns(Incomes), // Fetch all columns
         })
         .from(Incomes)
         .where(
           sql`
-          EXTRACT(MONTH FROM ${Incomes.date}::DATE) = ${month} AND
-          EXTRACT(YEAR FROM ${Incomes.date}::DATE) = ${year} AND
-          ${Incomes.createdBy} = ${user?.primaryEmailAddress?.emailAddress}
-        `
-        )
+            EXTRACT(MONTH FROM ${Incomes.date}::DATE) = ${month} AND
+            EXTRACT(YEAR FROM ${Incomes.date}::DATE) = ${year} AND
+            ${Incomes.createdBy} = ${user?.primaryEmailAddress?.emailAddress}
+          `
+        );
+  
+      console.log("Fetched incomes:", result);
+      setIncomeList(result); // Set the array of income entries
+    } catch (error) {
+      console.error("Error fetching income list:", error);
+    }
+  };
 
 
-      console.log("fetched incomes :", result);
-      setIncomeList(result);
-    }
-    catch (error) {
-      console.error(error);
-    }
-  }
+
+  
 
   return (
     <div className="p-5">
       <div>
         <h2 className="font-bold text-3xl">Hello, {user?.fullName}</h2>
         <p className="text-gray-500">Where's your money going? Let's have a look...</p>
+
       </div>
 
       {!isNewUser && (
