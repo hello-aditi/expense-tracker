@@ -121,8 +121,8 @@ function AddIncome() {
         <div className="p-10">
             <div className='flex justify-between'>
                 <h1 className="font-bold text-3xl mb-2">My Incomes</h1>
-                <div className='bg-slate-100 p-5 rounded-md items-center border-2 border-dashed
-               hover:shadow-md text-right'>
+                <div className='bg-white p-5 rounded-md items-center border-dashed
+               hover:shadow-md text-right border-2 border-fuchsia-800'>
                     Total Income: ₹{totalIncome}
                 </div>
             </div>

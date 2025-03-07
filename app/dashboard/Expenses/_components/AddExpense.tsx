@@ -173,18 +173,18 @@ function AddExpense({ user, refreshData }) {
 
 
   return (
-    <div className='border p-5 rounded-lg'>
+    <div className='p-5 rounded-lg border-2 border-fuchsia-800 bg-white'>
       <h2 className='font-bold text-lg'>Add Expense</h2>
       <div className='mt-2'>
         <h2 className='text-black font-medium my-1'>Expense Name</h2>
-        <Input placeholder="e.g. Pasta" value={name}
+        <Input placeholder="e.g. Pasta" value={name} className='border-2 border-fuchsia-800'
           onChange={(e) => setName(e.target.value)}
         />
       </div>
 
       <div className='mt-2'>
         <h2 className='text-black font-medium my-1'>Expense Amount</h2>
-        <Input placeholder="e.g. 300" value={amount}
+        <Input placeholder="e.g. 300" value={amount} className='border-2 border-fuchsia-800'
           onChange={(e) => setAmount(e.target.value)}
         />
       </div>

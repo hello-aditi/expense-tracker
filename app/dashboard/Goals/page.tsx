@@ -58,8 +58,8 @@ function GoalsPage() {
         .from(Incomes)
         .where(
           sql`${eq(Incomes.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
-        EXTRACT (YEAR FROM ${Incomes.date}) = ${currentYear} AND
-        EXTRACT (MONTH FROM ${Incomes.date}) = ${currentMonth}
+        EXTRACT (YEAR FROM ${Incomes.date}) = ${selectedYear} AND
+        EXTRACT (MONTH FROM ${Incomes.date}) = ${selectedMonth}
         `
         )
         .groupBy(Incomes.createdBy);
@@ -85,8 +85,8 @@ function GoalsPage() {
         .from(Budgets)
         .where(
           sql`${eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
-        EXTRACT (YEAR FROM ${Budgets.date}) = ${currentYear} AND
-        EXTRACT (MONTH FROM ${Budgets.date}) = ${currentMonth}
+        EXTRACT (YEAR FROM ${Budgets.date}) = ${selectedYear} AND
+        EXTRACT (MONTH FROM ${Budgets.date}) = ${selectedMonth}
         `
         )
         .groupBy(Budgets.createdBy);
@@ -109,9 +109,8 @@ function GoalsPage() {
         })
         .from(Goals)
         .where(
-          sql`${eq(Goals.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
-          EXTRACT (YEAR FROM ${Goals.date}) = ${currentYear} AND
-          EXTRACT (MONTH FROM ${Goals.date}) = ${currentMonth} AND
+          sql`${eq(Goals.createdBy, user?.primaryEmailAddress?.emailAddress)}
+         AND
           (${selectedPriority} = 'All' OR ${Goals.priority} = ${selectedPriority})
         `
         )
@@ -136,8 +135,8 @@ function GoalsPage() {
         .from(Transactions)
         .where(
           sql`${eq(Transactions.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
-        EXTRACT (YEAR FROM ${Transactions.date}) = ${currentYear} AND
-        EXTRACT (MONTH FROM ${Transactions.date}) = ${currentMonth}
+        EXTRACT (YEAR FROM ${Transactions.date}) = ${selectedYear} AND
+        EXTRACT (MONTH FROM ${Transactions.date}) = ${selectedMonth}
         `
         )
         .groupBy(Transactions.createdBy);
@@ -162,8 +161,8 @@ function GoalsPage() {
         .from(Expenses)
         .where(
           sql`${eq(Expenses.createdBy, user?.primaryEmailAddress?.emailAddress)} AND
-        EXTRACT (YEAR FROM ${Expenses.date}) = ${currentYear} AND
-        EXTRACT (MONTH FROM ${Expenses.date}) = ${currentMonth}
+        EXTRACT (YEAR FROM ${Expenses.date}) = ${selectedYear} AND
+        EXTRACT (MONTH FROM ${Expenses.date}) = ${selectedMonth}
         `
         )
         .groupBy(Expenses.createdBy);
@@ -226,8 +225,8 @@ function GoalsPage() {
     <div className='p-10'>
       <div className='flex justify-between'>
         <h1 className="font-bold text-3xl">My Goals</h1>
-        <div className='bg-slate-100 p-5 rounded-md items-center border-2 border-dashed
-               hover:shadow-md text-right'>
+        <div className='bg-white p-5 rounded-md items-center border-dashed
+               hover:shadow-md text-right border-2 border-fuchsia-800'>
           <h2>Remaining Amount: ₹{remainingAmount}</h2>
         </div>
         {/* <button onClick={() => {
@@ -303,7 +302,9 @@ function GoalsPage() {
         </div>
 
         {/* Show "Create New Budget" ONLY for the current month */}
-        <CreateGoals refreshData={() => getGoalsList()} />
+        {selectedYear === currentYear && selectedMonth === currentMonth ? (
+          <CreateGoals refreshData={() => getGoalsList()} />
+        ) : null}
 
       </div>
 

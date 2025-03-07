@@ -18,7 +18,7 @@ function BudgetItem({ budget }) {
 
 
     return (
-        <div className='p-5 border rounded-lg hover:shadow-lg cursor-pointer h-[170px]'>
+        <div className='p-5 rounded-lg hover:shadow-lg cursor-pointer h-[170px] bg-white border-2 border-fuchsia-800'>
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -38,7 +38,7 @@ function BudgetItem({ budget }) {
                                     <h2 className='text-xs text-slate-500'>₹{budget.totalSpend ? budget.totalSpend : 0} Spent </h2>
                                     <h2 className='text-xs text-slate-500'>₹{budget.amount - budget.totalSpend} Remains</h2>
                                 </div>
-                                <div className='w-full bg-fuchsia-200 h-2 rounded-full'>
+                                <div className='w-full bg-fuchsia-300 h-2 rounded-full'>
                                     <div className=' bg-fuchsia-800 h-2 rounded-full'
 
                                         style={{
@@ -53,7 +53,7 @@ function BudgetItem({ budget }) {
                         </Link>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <h3 className="text-sm">Click to add Expenses</h3>
+                        <h3 className="text-sm text-white">Click to add Expenses</h3>
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>

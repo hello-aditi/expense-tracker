@@ -11,7 +11,7 @@ export default function RootLayout() {
   return (
     <ClerkProvider>
       <html lang="en">
-        <body>
+        <body className='bg-fuchsia-100'>
           <Toaster />
           <header>
             <SignedOut>

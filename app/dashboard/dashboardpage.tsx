@@ -9,6 +9,7 @@ import CardsInfo from "./_components/CardsInfo";
 import BarChartDashboard from "./_components/BarChartDashboard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import LineChartDashboard from "./_components/LineChartDashboard";
 
 
 export default function DashboardPage() {
@@ -177,14 +178,12 @@ export default function DashboardPage() {
     }
   };
 
-
-
   
 
   return (
     <div className="p-5">
       <div>
-        <h2 className="font-bold text-3xl">Hello, {user?.fullName}</h2>
+        <h2 className="font-bold text-3xl">Hello, <span className="text-fuchsia-800">{user?.fullName}</span></h2>
         <p className="text-gray-500">Where's your money going? Let's have a look...</p>
 
       </div>
@@ -222,16 +221,18 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {budgetList?.length > 0 ? (
+      {budgetList?.length > 0 || incomeList?.length > 0 ? (
         <>
-          <CardsInfo budgetList={budgetList} incomeList={incomeList} />
+         <CardsInfo budgetList={budgetList} incomeList={incomeList} selectedMonth={selectedMonth} selectedYear={selectedYear} />
           
            {/* <FinancialSummary budgetList={budgetList} incomeList={incomeList}/> */}
-          <div className="grid grid-cols-2 md:grid-cols-2 mt-6">
-            <div className="md:col-span-4">
+          <div className="flex mt-6 space-x-4">
+            <div className="w-3/5">
               <BarChartDashboard budgetList={budgetList} />
             </div>
-            <div>Other Content</div>
+            <div className="w-2/5">
+            <LineChartDashboard selectedMonth={selectedMonth} selectedYear={selectedYear}/>
+            </div>
           </div>
         </>
       ) : (

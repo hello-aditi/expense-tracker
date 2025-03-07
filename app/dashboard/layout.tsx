@@ -53,7 +53,7 @@ function DashboardLayout() {
       <SideNav setPageName={undefined} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div 
       className={`flex-1 p-5 ml-[200px] transition-all
-      ${isCollapsed ? "ml-[80px]" : "ml-[200px]"}
+      ${isCollapsed ? "ml-[80px]" : "ml-[200px]"} 
       `}>
         
         {pageContent}

@@ -25,14 +25,14 @@ function ExpenseListTable({expensesList, refreshData}) {
 
   return (
     <div className='mt-3'>
-        <div className='grid grid-cols-4 bg-fuchsia-200 p-2 font-bold'>
+        <div className='grid grid-cols-4 bg-white p-2 font-bold border-2 border-fuchsia-800'>
             <h2>Name</h2>
             <h2>Amount</h2>
             <h2>Date</h2>
             <h2>Action</h2>
         </div>
         {expensesList.map((expenses)=>(
-            <div key={expenses.id} className='grid grid-cols-4 bg-fuchsia-100 p-2'>
+            <div key={expenses.id} className='grid grid-cols-4 p-2 bg-fuchsia-300'>
                 <h2>{expenses.name}</h2>
                 <h2>{expenses.amount}</h2>
                 <h2>{moment(expenses.date).format("DD MMM YYYY")}</h2>

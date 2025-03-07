@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
 import { UserButton } from "@clerk/nextjs";
-import { Goal, LayoutGrid, PiggyBank, ShieldCheck, Menu, square-chevron-left } from "lucide-react";
+import { Goal, LayoutGrid, PiggyBank, ShieldCheck, Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 function SideNav({ setPageName, isCollapsed, setIsCollapsed }) {
-
+  const pathname = usePathname();
 
   const menuList = [
     { id: 1, name: "Dashboard", icon: LayoutGrid, path: "/dashboard" },
@@ -17,45 +18,50 @@ function SideNav({ setPageName, isCollapsed, setIsCollapsed }) {
 
   return (
     <div
-      className={`fixed top-0 left-0 h-screen border shadow-md bg-white transition-all duration-300 
-        ${isCollapsed ? "w-[80px]" : "w-[190px]"} p-3`
-      }
+      className={`fixed top-0 left-0 h-screen border shadow-md transition-all duration-300 bg-fuchsia-50 p-4
+        ${isCollapsed ? "w-[80px]" : "w-[190px]"} p-4`} // Changed bg-white to bg-fuchsia-50, p-3 to p-4
     >
-
-      <Image
-        src={isCollapsed ? "/logo-collapsed.svg" : "/logo.svg"}
-        alt="logo"
-        width={isCollapsed ? 40 : 140}  // Adjust width based on state
-        height={isCollapsed ? 40 : 50}  // Adjust height based on state
-        className="mb-3 transition-all"
-      />
+      <div className="flex justify-center mb-3">
+        <Image
+          src={isCollapsed ? "/logo-collapsed.svg" : "/logo.svg"}
+          alt="logo"
+          width={isCollapsed ? 40 : 140}
+          height={isCollapsed ? 40 : 50}
+          className="transition-all duration-300 ease-in-out" // Added duration-300 for smoother transition
+        />
+      </div>
 
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="mb-2 p-1 rounded-md hover:bg-gray-200 transition-all"
+        className="mb-2 p-2 rounded-full bg-fuchsia-100 hover:bg-fuchsia-200 transition-all shadow-md" // Updated styling for the collapse button
       >
-        <square-chevron-left className="w-8 h-6" />
+        <Menu className="w-6 h-6 text-fuchsia-600" /> {/* Added text-fuchsia-600 for the icon */}
       </button>
 
-      {/* ✅ Navigation Menu */}
-      <div className="mt-5 space-y-3">
-        {menuList.map((menu) => (
-          <Link key={menu.id} href={menu.path} passHref>
-            <div
-              onClick={() => setPageName && setPageName(menu.name)}
-              className="flex gap-3 items-center text-black font-semibold p-3 cursor-pointer rounded-md hover:bg-violet-300 transition-all"
-            >
-              <menu.icon className="w-6 h-6" />
-              {!isCollapsed && <span>{menu.name}</span>}
-            </div>
-          </Link>
-        ))}
+      <div className="mt-5 space-y-4 font-bold"> 
+        {menuList.map((menu) => {
+          const isActive = pathname === menu.path;
+
+          return (
+            <Link key={menu.id} href={menu.path} passHref>
+              <div
+                onClick={() => setPageName && setPageName(menu.name)}
+                className={`flex gap-3 items-center text-gray-800 font-medium p-3 cursor-pointer rounded-lg transition-all 
+                  ${isActive ? "bg-fuchsia-600 text-white font-bold" : "hover:bg-fuchsia-100 hover:scale-105 hover:shadow-md"}`} // Updated styling: text-gray-800, bg-fuchsia-600, hover effects
+              >
+                <menu.icon className={`w-6 h-6 ${isActive ? "text-white" : "text-fuchsia-600"}`} /> {/* Added conditional icon color */}
+                {!isCollapsed && <span>{menu.name}</span>}
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
-      {/* ✅ Profile Section (Show only icon when collapsed) */}
-      <div className="absolute bottom-10 p-5 flex items-center gap-3 font-semibold cursor-pointer">
+      <div
+        className="absolute bottom-11 p-3 flex items-center gap-3 font-semibold cursor-pointer bg-white rounded-lg shadow-md border border-fuchsia-200 hover:bg-fuchsia-50 transition-all" // Updated styling for profile section
+      >
         <UserButton />
-        {!isCollapsed && <span>Profile</span>}
+        {!isCollapsed && <span className="text-gray-800">Profile</span>} {/* Added text-gray-800 */}
       </div>
     </div>
   );
