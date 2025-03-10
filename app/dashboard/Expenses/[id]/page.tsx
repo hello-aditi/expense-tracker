@@ -177,7 +177,7 @@ const currentYear = new Date().getFullYear();
             <BudgetItem budget={budgetInfo} />
           </>
         ) : (
-          <div className="h-[150px] w-full bg-slate-200 rounded-lg animate-pulse"></div>
+          <div className="h-[150px] w-full bg-fuchsia-300 rounded-lg animate-pulse"></div>
         )}
         <AddExpense user={user} refreshData={()=>getBudgetInfo()}/>
       </div>
